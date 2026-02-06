@@ -73,12 +73,33 @@ const SectionContent = ({ json }: { json: string }) => {
                 // SECURITY PATCH: Remove 'HeroSection' nodes if they exist to prevent crashes
                 // since we removed that component.
                 const nodes = data;
+                const nodesToDelete = new Set<string>();
+
+                const collectDescendants = (nodeId: string) => {
+                    const node = nodes[nodeId];
+                    if (node && node.nodes && Array.isArray(node.nodes)) {
+                        node.nodes.forEach((childId: string) => {
+                            nodesToDelete.add(childId);
+                            collectDescendants(childId);
+                        });
+                    }
+                    if (node && node.linkedNodes && typeof node.linkedNodes === 'object') {
+                         Object.values(node.linkedNodes).forEach((linkedNodeId: any) => {
+                             if (typeof linkedNodeId === 'string') {
+                                 nodesToDelete.add(linkedNodeId);
+                                 collectDescendants(linkedNodeId);
+                             }
+                         });
+                    }
+                };
+
                 Object.keys(nodes).forEach(key => {
                     const node = nodes[key];
-                    if (node.type && node.type.resolvedName === "HeroSection") {
-                        // 1. Remove this node
-                        delete nodes[key];
-                        // 2. Remove reference from parent
+                    if (node && node.type && node.type.resolvedName === "HeroSection") {
+                        nodesToDelete.add(key);
+                        collectDescendants(key);
+                        
+                        // Remove reference from parent
                         if (node.parent) {
                             const parent = nodes[node.parent];
                             if (parent && parent.nodes) {
@@ -86,6 +107,10 @@ const SectionContent = ({ json }: { json: string }) => {
                             }
                         }
                     }
+                });
+
+                nodesToDelete.forEach(key => {
+                    delete nodes[key];
                 });
 
                 const patchedJson = JSON.stringify(data);
@@ -126,7 +151,7 @@ export const FullPreview = () => {
             <DialogContent className="max-w-[95vw] w-full h-[95vh] sm:max-w-[95vw] overflow-hidden flex flex-col p-0">
                 <div className="p-4 border-b flex items-center justify-between bg-white shadow-sm z-10">
                     <div className="flex items-center gap-4">
-                        <DialogTitle className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+                        <DialogTitle className="text-xl font-bold bg-linear-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
                             Full Website Preview
                         </DialogTitle>
                         <div className="h-6 w-px bg-gray-200" />
@@ -145,8 +170,8 @@ export const FullPreview = () => {
                 </div>
                 <div className="flex-1 overflow-y-auto bg-gray-100 p-8 flex justify-center">
                     <div className={`transition-all duration-300 bg-white shadow-2xl ${previewDevice === "mobile"
-                        ? "w-[375px] min-h-[667px]"
-                        : "w-full min-h-[200px]"
+                        ? "w-93.75 min-h-166.75"
+                        : "w-full min-h-50"
                         }`}>
                         {SECTIONS
                             .filter(section => {

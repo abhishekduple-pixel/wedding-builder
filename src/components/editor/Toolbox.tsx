@@ -46,55 +46,7 @@ export const Toolbox = () => {
                 <TabsContent value="components" className="flex-1 p-0 overflow-hidden flex flex-col min-h-0">
                     <div className="h-full w-full p-4 overflow-y-auto">
                         <div className="space-y-4 pb-4">
-                            <div className="space-y-2">
-                                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Blocks</Label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <Button
-                                        variant="outline"
-                                        className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
-                                        ref={(ref: any) => connectors.create(
-                                            ref,
-                                            <Element is={UserContainer} background="transparent" canvas width="100%" minHeight="800px" padding={20} layoutMode="canvas">
-                                                <UserText text="Wedding Events" fontSize={32} fontWeight="bold" align="center" width="100%" top={20} positionType="absolute" left={0} />
 
-                                                {/* Vertical Line */}
-                                                <Element is={UserAnimatedShape} shapeType="line" width={4} height={700} backgroundColor="#e5e7eb" top={80} left={400} positionType="absolute" align="center" />
-
-                                                {/* Event 1 (Left) */}
-                                                <Element is={UserAnimatedShape} shapeType="circle" width={16} height={16} backgroundColor="#ef4444" top={150} left={394} positionType="absolute" />
-                                                <Element is={UserContainer} width="300px" minHeight="150px" background="white" padding={20} borderRadius={8} top={120} left={50} positionType="absolute" layoutMode="flex">
-                                                    <UserText text="Mehendi Ceremony" fontSize={18} fontWeight="bold" color="#dc2626" />
-                                                    <UserText text="📅 December 23, 2025" fontSize={14} color="#6b7280" />
-                                                    <UserText text="🕒 4:00 PM" fontSize={14} color="#6b7280" />
-                                                    <UserText text="Traditional henna ceremony with music and celebrations" fontSize={14} marginTop={10} />
-                                                </Element>
-
-                                                {/* Event 2 (Right) */}
-                                                <Element is={UserAnimatedShape} shapeType="circle" width={16} height={16} backgroundColor="#ef4444" top={350} left={394} positionType="absolute" />
-                                                <Element is={UserContainer} width="300px" minHeight="150px" background="white" padding={20} borderRadius={8} top={320} left={450} positionType="absolute" layoutMode="flex">
-                                                    <UserText text="Sangeet Night" fontSize={18} fontWeight="bold" color="#dc2626" />
-                                                    <UserText text="📅 December 24, 2025" fontSize={14} color="#6b7280" />
-                                                    <UserText text="🕒 7:00 PM" fontSize={14} color="#6b7280" />
-                                                    <UserText text="An evening of music, dance, and celebration" fontSize={14} marginTop={10} />
-                                                </Element>
-
-                                                {/* Event 3 (Left) */}
-                                                <Element is={UserAnimatedShape} shapeType="circle" width={16} height={16} backgroundColor="#ef4444" top={550} left={394} positionType="absolute" />
-                                                <Element is={UserContainer} width="300px" minHeight="150px" background="white" padding={20} borderRadius={8} top={520} left={50} positionType="absolute" layoutMode="flex">
-                                                    <UserText text="Wedding Ceremony" fontSize={18} fontWeight="bold" color="#dc2626" />
-                                                    <UserText text="📅 December 25, 2025" fontSize={14} color="#6b7280" />
-                                                    <UserText text="🕒 11:00 AM" fontSize={14} color="#6b7280" />
-                                                    <UserText text="The main wedding ceremony" fontSize={14} marginTop={10} />
-                                                </Element>
-
-                                            </Element>
-                                        )}
-                                    >
-                                        <LayoutTemplate className="h-6 w-6" />
-                                        <span className="text-xs">Timeline</span>
-                                    </Button>
-                                </div>
-                            </div>
 
                             <div className="space-y-2">
                                 <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Typography</Label>
@@ -282,6 +234,56 @@ export const Toolbox = () => {
                                 </Button>
                             </div>
                         </div>
+
+                        <div className="space-y-2">
+                                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Blocks</Label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Button
+                                        variant="outline"
+                                        className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                                        ref={(ref: any) => connectors.create(
+                                            ref,
+                                            <Element is={UserContainer} background="transparent" canvas width="100%" minHeight="800px" padding={20} layoutMode="canvas">
+                                                <UserText text="Wedding Events" fontSize={32} fontWeight="bold" align="center" width="100%" top={20} positionType="absolute" left={0} />
+
+                                                {/* Vertical Line */}
+                                                <Element is={UserAnimatedShape} shapeType="line" width={4} height={700} backgroundColor="#e5e7eb" top={80} left={400} positionType="absolute" align="center" />
+
+                                                {/* Event 1 (Left) */}
+                                                <Element is={UserAnimatedShape} shapeType="circle" width={16} height={16} backgroundColor="#ef4444" top={150} left={394} positionType="absolute" />
+                                                <Element is={UserContainer} width="300px" minHeight="150px" background="white" padding={20} borderRadius={8} top={120} left={50} positionType="absolute" layoutMode="flex">
+                                                    <UserText text="Mehendi Ceremony" fontSize={18} fontWeight="bold" color="#dc2626" />
+                                                    <UserText text="📅 December 23, 2025" fontSize={14} color="#6b7280" />
+                                                    <UserText text="🕒 4:00 PM" fontSize={14} color="#6b7280" />
+                                                    <UserText text="Traditional henna ceremony with music and celebrations" fontSize={14} marginTop={10} />
+                                                </Element>
+
+                                                {/* Event 2 (Right) */}
+                                                <Element is={UserAnimatedShape} shapeType="circle" width={16} height={16} backgroundColor="#ef4444" top={350} left={394} positionType="absolute" />
+                                                <Element is={UserContainer} width="300px" minHeight="150px" background="white" padding={20} borderRadius={8} top={320} left={450} positionType="absolute" layoutMode="flex">
+                                                    <UserText text="Sangeet Night" fontSize={18} fontWeight="bold" color="#dc2626" />
+                                                    <UserText text="📅 December 24, 2025" fontSize={14} color="#6b7280" />
+                                                    <UserText text="🕒 7:00 PM" fontSize={14} color="#6b7280" />
+                                                    <UserText text="An evening of music, dance, and celebration" fontSize={14} marginTop={10} />
+                                                </Element>
+
+                                                {/* Event 3 (Left) */}
+                                                <Element is={UserAnimatedShape} shapeType="circle" width={16} height={16} backgroundColor="#ef4444" top={550} left={394} positionType="absolute" />
+                                                <Element is={UserContainer} width="300px" minHeight="150px" background="white" padding={20} borderRadius={8} top={520} left={50} positionType="absolute" layoutMode="flex">
+                                                    <UserText text="Wedding Ceremony" fontSize={18} fontWeight="bold" color="#dc2626" />
+                                                    <UserText text="📅 December 25, 2025" fontSize={14} color="#6b7280" />
+                                                    <UserText text="🕒 11:00 AM" fontSize={14} color="#6b7280" />
+                                                    <UserText text="The main wedding ceremony" fontSize={14} marginTop={10} />
+                                                </Element>
+
+                                            </Element>
+                                        )}
+                                    >
+                                        <LayoutTemplate className="h-6 w-6" />
+                                        <span className="text-xs">Timeline</span>
+                                    </Button>
+                                </div>
+                            </div>
                     </div>
                 </TabsContent>
 
