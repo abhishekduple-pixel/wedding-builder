@@ -18,6 +18,13 @@ import { UserAnimatedShape } from "../user/AnimatedShape";
 import { UserChart } from "../user/Chart";
 import { UserTable } from "../user/Table";
 import { UserEmoji } from "../user/Emoji";
+import { UserModernHero } from "../user/sections/ModernHero";
+import { UserFooter } from "../user/sections/Footer";
+import { UserPrivateEventPopup } from "../user/sections/PrivateEventPopup";
+
+// Register components for the editor
+console.log("Registering components:", { UserFooter, UserModernHero, UserPrivateEventPopup });
+
 // We will import more components here as we build them
 
 export const EditorProvider = ({ children }: { children: React.ReactNode }) => {
@@ -39,6 +46,9 @@ export const EditorProvider = ({ children }: { children: React.ReactNode }) => {
                 UserChart,
                 UserTable,
                 UserEmoji,
+                UserModernHero,
+                UserFooter,
+                UserPrivateEventPopup,
             }}
             onRender={RenderNode}
         >

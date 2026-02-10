@@ -6,7 +6,7 @@ import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { ScrollArea } from "../ui/scroll-area";
-import { Type, Image as ImageIcon, Square, Youtube, Columns } from "lucide-react";
+import { Type, Image as ImageIcon, Square, Youtube, Columns, Grid } from "lucide-react";
 import { Layers } from "./Layers";
 import { UserText } from "../user/Text";
 import { UserContainer } from "../user/Container";
@@ -23,7 +23,10 @@ import { UserAnimatedShape } from "../user/AnimatedShape";
 import { UserChart } from "../user/Chart";
 import { UserTable } from "../user/Table";
 import { UserEmoji } from "../user/Emoji";
-import { MousePointerClick, TextCursorInput, ToggleRight, SlidersHorizontal, Tag, RectangleHorizontal, Sparkles, PieChart, Table as TableIcon, Smile, LayoutTemplate } from "lucide-react";
+import { UserModernHero } from "../user/sections/ModernHero";
+import { UserFooter } from "../user/sections/Footer";
+import { UserPrivateEventPopup } from "../user/sections/PrivateEventPopup";
+import { MousePointerClick, TextCursorInput, ToggleRight, SlidersHorizontal, Tag, RectangleHorizontal, Sparkles, PieChart, Table as TableIcon, Smile, LayoutTemplate, PanelBottom, Lock } from "lucide-react";
 
 export const Toolbox = () => {
     const { connectors } = useEditor();
@@ -51,6 +54,7 @@ export const Toolbox = () => {
                             <div className="space-y-2">
                                 <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Typography</Label>
                                 <div className="grid grid-cols-2 gap-2">
+
                                     <Button
                                         variant="outline"
                                         className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
@@ -133,6 +137,55 @@ export const Toolbox = () => {
                                         <Square className="h-6 w-6" />
                                         <span className="text-xs">Popup</span>
                                     </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                                        ref={(ref: any) => connectors.create(
+                                            ref,
+                                            <Element is={UserContainer} layoutMode="grid" gridColumns={2} gap={20} width="100%" padding={20} canvas>
+                                                <Element is={UserContainer} width="100%" padding={20} canvas />
+                                                <Element is={UserContainer} width="100%" padding={20} canvas />
+                                            </Element>
+                                        )}
+                                    >
+                                        <Grid className="h-6 w-6" />
+                                        <span className="text-xs">Grid 2</span>
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                                        ref={(ref: any) => connectors.create(
+                                            ref,
+                                            <Element is={UserContainer} layoutMode="grid" gridColumns={4} gap={20} width="100%" padding={20} canvas>
+                                                <Element is={UserContainer} width="100%" padding={20} canvas />
+                                                <Element is={UserContainer} width="100%" padding={20} canvas />
+                                                <Element is={UserContainer} width="100%" padding={20} canvas />
+                                                <Element is={UserContainer} width="100%" padding={20} canvas />
+                                            </Element>
+                                        )}
+                                    >
+                                        <Grid className="h-6 w-6" />
+                                        <span className="text-xs">Grid 4</span>
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                                        ref={(ref: any) => connectors.create(
+                                            ref,
+                                            <Element is={UserContainer} layoutMode="grid" gridColumns={6} gap={20} width="100%" padding={20} canvas>
+                                                <Element is={UserContainer} width="100%" padding={20} canvas />
+                                                <Element is={UserContainer} width="100%" padding={20} canvas />
+                                                <Element is={UserContainer} width="100%" padding={20} canvas />
+                                                <Element is={UserContainer} width="100%" padding={20} canvas />
+                                                <Element is={UserContainer} width="100%" padding={20} canvas />
+                                                <Element is={UserContainer} width="100%" padding={20} canvas />
+                                            </Element>
+                                        )}
+                                    >
+                                        <Grid className="h-6 w-6" />
+                                        <span className="text-xs">Grid 6</span>
+                                    </Button>
+
                                 </div>
                             </div>
                         </div>
@@ -236,54 +289,78 @@ export const Toolbox = () => {
                         </div>
 
                         <div className="space-y-2">
-                                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Blocks</Label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <Button
-                                        variant="outline"
-                                        className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
-                                        ref={(ref: any) => connectors.create(
-                                            ref,
-                                            <Element is={UserContainer} background="transparent" canvas width="100%" minHeight="800px" padding={20} layoutMode="canvas">
-                                                <UserText text="Wedding Events" fontSize={32} fontWeight="bold" align="center" width="100%" top={20} positionType="absolute" left={0} />
+                            <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Blocks</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <Button
+                                    variant="outline"
+                                    className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                                    ref={(ref: any) => connectors.create(
+                                        ref,
+                                        <Element is={UserContainer} background="transparent" canvas width="100%" minHeight="800px" padding={20} layoutMode="canvas">
+                                            <UserText text="Wedding Events" fontSize={32} fontWeight="bold" align="center" width="100%" top={20} positionType="absolute" left={0} />
 
-                                                {/* Vertical Line */}
-                                                <Element is={UserAnimatedShape} shapeType="line" width={4} height={700} backgroundColor="#e5e7eb" top={80} left={400} positionType="absolute" align="center" />
+                                            {/* Vertical Line */}
+                                            <Element is={UserAnimatedShape} shapeType="line" width={4} height={700} backgroundColor="#e5e7eb" top={80} left={400} positionType="absolute" align="center" />
 
-                                                {/* Event 1 (Left) */}
-                                                <Element is={UserAnimatedShape} shapeType="circle" width={16} height={16} backgroundColor="#ef4444" top={150} left={394} positionType="absolute" />
-                                                <Element is={UserContainer} width="300px" minHeight="150px" background="white" padding={20} borderRadius={8} top={120} left={50} positionType="absolute" layoutMode="flex">
-                                                    <UserText text="Mehendi Ceremony" fontSize={18} fontWeight="bold" color="#dc2626" />
-                                                    <UserText text="📅 December 23, 2025" fontSize={14} color="#6b7280" />
-                                                    <UserText text="🕒 4:00 PM" fontSize={14} color="#6b7280" />
-                                                    <UserText text="Traditional henna ceremony with music and celebrations" fontSize={14} marginTop={10} />
-                                                </Element>
-
-                                                {/* Event 2 (Right) */}
-                                                <Element is={UserAnimatedShape} shapeType="circle" width={16} height={16} backgroundColor="#ef4444" top={350} left={394} positionType="absolute" />
-                                                <Element is={UserContainer} width="300px" minHeight="150px" background="white" padding={20} borderRadius={8} top={320} left={450} positionType="absolute" layoutMode="flex">
-                                                    <UserText text="Sangeet Night" fontSize={18} fontWeight="bold" color="#dc2626" />
-                                                    <UserText text="📅 December 24, 2025" fontSize={14} color="#6b7280" />
-                                                    <UserText text="🕒 7:00 PM" fontSize={14} color="#6b7280" />
-                                                    <UserText text="An evening of music, dance, and celebration" fontSize={14} marginTop={10} />
-                                                </Element>
-
-                                                {/* Event 3 (Left) */}
-                                                <Element is={UserAnimatedShape} shapeType="circle" width={16} height={16} backgroundColor="#ef4444" top={550} left={394} positionType="absolute" />
-                                                <Element is={UserContainer} width="300px" minHeight="150px" background="white" padding={20} borderRadius={8} top={520} left={50} positionType="absolute" layoutMode="flex">
-                                                    <UserText text="Wedding Ceremony" fontSize={18} fontWeight="bold" color="#dc2626" />
-                                                    <UserText text="📅 December 25, 2025" fontSize={14} color="#6b7280" />
-                                                    <UserText text="🕒 11:00 AM" fontSize={14} color="#6b7280" />
-                                                    <UserText text="The main wedding ceremony" fontSize={14} marginTop={10} />
-                                                </Element>
-
+                                            {/* Event 1 (Left) */}
+                                            <Element is={UserAnimatedShape} shapeType="circle" width={16} height={16} backgroundColor="#ef4444" top={150} left={394} positionType="absolute" />
+                                            <Element is={UserContainer} width="300px" minHeight="150px" background="white" padding={20} borderRadius={8} top={120} left={50} positionType="absolute" layoutMode="flex">
+                                                <UserText text="Mehendi Ceremony" fontSize={18} fontWeight="bold" color="#dc2626" />
+                                                <UserText text="📅 December 23, 2025" fontSize={14} color="#6b7280" />
+                                                <UserText text="🕒 4:00 PM" fontSize={14} color="#6b7280" />
+                                                <UserText text="Traditional henna ceremony with music and celebrations" fontSize={14} marginTop={10} />
                                             </Element>
-                                        )}
+
+                                            {/* Event 2 (Right) */}
+                                            <Element is={UserAnimatedShape} shapeType="circle" width={16} height={16} backgroundColor="#ef4444" top={350} left={394} positionType="absolute" />
+                                            <Element is={UserContainer} width="300px" minHeight="150px" background="white" padding={20} borderRadius={8} top={320} left={450} positionType="absolute" layoutMode="flex">
+                                                <UserText text="Sangeet Night" fontSize={18} fontWeight="bold" color="#dc2626" />
+                                                <UserText text="📅 December 24, 2025" fontSize={14} color="#6b7280" />
+                                                <UserText text="🕒 7:00 PM" fontSize={14} color="#6b7280" />
+                                                <UserText text="An evening of music, dance, and celebration" fontSize={14} marginTop={10} />
+                                            </Element>
+
+                                            {/* Event 3 (Left) */}
+                                            <Element is={UserAnimatedShape} shapeType="circle" width={16} height={16} backgroundColor="#ef4444" top={550} left={394} positionType="absolute" />
+                                            <Element is={UserContainer} width="300px" minHeight="150px" background="white" padding={20} borderRadius={8} top={520} left={50} positionType="absolute" layoutMode="flex">
+                                                <UserText text="Wedding Ceremony" fontSize={18} fontWeight="bold" color="#dc2626" />
+                                                <UserText text="📅 December 25, 2025" fontSize={14} color="#6b7280" />
+                                                <UserText text="🕒 11:00 AM" fontSize={14} color="#6b7280" />
+                                                <UserText text="The main wedding ceremony" fontSize={14} marginTop={10} />
+                                            </Element>
+
+                                        </Element>
+                                    )}
+                                >
+                                    <LayoutTemplate className="h-6 w-6" />
+                                    <span className="text-xs">Timeline</span>
+                                </Button>
+                                    <Button
+                                        ref={(ref: any) => connectors.create(ref, <UserModernHero />)}
+                                        variant="outline"
+                                        className="flex flex-col gap-2 h-20 hover:bg-muted"
                                     >
-                                        <LayoutTemplate className="h-6 w-6" />
-                                        <span className="text-xs">Timeline</span>
+                                        <LayoutTemplate className="w-6 h-6" />
+                                        <span className="text-xs">Modern Hero</span>
                                     </Button>
-                                </div>
+                                    <Button
+                                        ref={(ref: any) => connectors.create(ref, <UserFooter />)}
+                                        variant="outline"
+                                        className="flex flex-col gap-2 h-20 hover:bg-muted"
+                                    >
+                                        <PanelBottom className="w-6 h-6" />
+                                        <span className="text-xs">Footer</span>
+                                    </Button>
+                                    <Button
+                                        ref={(ref: any) => connectors.create(ref, <UserPrivateEventPopup />)}
+                                        variant="outline"
+                                        className="flex flex-col gap-2 h-20 hover:bg-muted"
+                                    >
+                                        <Lock className="w-6 h-6" />
+                                        <span className="text-xs">Event Access</span>
+                                    </Button>
                             </div>
+                        </div>
                     </div>
                 </TabsContent>
 

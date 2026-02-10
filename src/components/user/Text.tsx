@@ -7,7 +7,7 @@ import { Slider } from "../ui/slider";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
-import { AlignLeft, AlignCenter, AlignRight, Bold, Italic } from "lucide-react";
+import { AlignLeft, AlignCenter, AlignRight, Bold, Italic, Underline, Strikethrough } from "lucide-react";
 import { AnimationSection, getAnimationVariants } from "./AnimationSection";
 import { motion } from "framer-motion";
 import { StylesPanel } from "../editor/properties/StylesPanel";
@@ -15,16 +15,27 @@ import { getSpacing } from "@/lib/utils";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 
 export const TextSettings = () => {
-    const { actions: { setProp }, fontSize, color, textAlign, fontWeight, fontStyle } = useNode((node) => ({
+    const { actions: { setProp }, fontSize, color, textAlign, fontWeight, fontStyle, textDecoration, text } = useNode((node) => ({
         fontSize: node.data.props.fontSize,
         color: node.data.props.color,
         textAlign: node.data.props.textAlign,
         fontWeight: node.data.props.fontWeight,
         fontStyle: node.data.props.fontStyle,
+        textDecoration: node.data.props.textDecoration,
+        text: node.data.props.text,
     }));
 
     return (
         <div className="space-y-4">
+            <div className="space-y-2">
+                <Label>Text Content</Label>
+                <textarea
+                    className="flex min-h-20 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    value={text || ""}
+                    onChange={(e) => setProp((props: any) => props.text = e.target.value)}
+                />
+            </div>
+
             <div className="space-y-2">
                 <Label>Font Family</Label>
                 <select
@@ -104,14 +115,29 @@ export const TextSettings = () => {
 
             <div className="space-y-2">
                 <Label>Style</Label>
-                <ToggleGroup type="multiple" value={[fontWeight === 'bold' ? 'bold' : '', fontStyle === 'italic' ? 'italic' : ''].filter(Boolean)} onValueChange={(vals) => {
+                <ToggleGroup type="multiple" value={[
+                    fontWeight === 'bold' ? 'bold' : '', 
+                    fontStyle === 'italic' ? 'italic' : '',
+                    textDecoration === 'underline' ? 'underline' : '',
+                    textDecoration === 'line-through' ? 'line-through' : '',
+                    textDecoration === 'overline' ? 'overline' : ''
+                ].filter(Boolean)} onValueChange={(vals) => {
                     setProp((props: any) => {
                         props.fontWeight = vals.includes('bold') ? 'bold' : 'normal';
                         props.fontStyle = vals.includes('italic') ? 'italic' : 'normal';
+                        
+                        // Handle text decoration
+                        if (vals.includes('underline')) props.textDecoration = 'underline';
+                        else if (vals.includes('line-through')) props.textDecoration = 'line-through';
+                        else if (vals.includes('overline')) props.textDecoration = 'overline';
+                        else props.textDecoration = 'none';
                     })
                 }}>
-                    <ToggleGroupItem value="bold"><Bold className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="italic"><Italic className="h-4 w-4" /></ToggleGroupItem>
+                    <ToggleGroupItem value="bold" aria-label="Bold"><Bold className="h-4 w-4" /></ToggleGroupItem>
+                    <ToggleGroupItem value="italic" aria-label="Italic"><Italic className="h-4 w-4" /></ToggleGroupItem>
+                    <ToggleGroupItem value="underline" aria-label="Underline"><Underline className="h-4 w-4" /></ToggleGroupItem>
+                    <ToggleGroupItem value="line-through" aria-label="Strikethrough"><Strikethrough className="h-4 w-4" /></ToggleGroupItem>
+                    <ToggleGroupItem value="overline" aria-label="Overline"><span className="text-xs font-bold underline decoration-2 decoration-current align-top" style={{ textDecorationLine: 'overline' }}>O</span></ToggleGroupItem>
                 </ToggleGroup>
             </div>
 
@@ -120,7 +146,7 @@ export const TextSettings = () => {
     );
 };
 
-export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontStyle, fontFamily, padding, margin, width, minHeight, background, borderRadius, top, left, animationType, animationDuration, animationDelay }: any) => {
+export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontStyle, textDecoration, fontFamily, padding, margin, width, minHeight, background, borderRadius, top, left, animationType, animationDuration, animationDelay }: any) => {
     const { connectors: { connect, drag }, actions: { setProp }, selected, isActive, parent } = useNode((state) => ({
         selected: state.events.selected,
         isActive: state.events.selected,
@@ -186,6 +212,7 @@ export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontSty
                     textAlign,
                     fontWeight,
                     fontStyle,
+                    textDecoration,
                     fontFamily,
                     minHeight: "1em", // Ensure it doesn't collapse
                     width: "100%"
@@ -205,6 +232,7 @@ UserText.craft = {
         textAlign: "left",
         fontWeight: "normal",
         fontStyle: "normal",
+        textDecoration: "none",
         fontFamily: "sans-serif",
         padding: 0,
         margin: 0,

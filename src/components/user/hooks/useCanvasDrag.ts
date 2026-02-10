@@ -7,7 +7,7 @@ export const useCanvasDrag = (top: number, left: number, actions: any) => {
 
     const { parentLayoutMode } = useEditor((state) => {
         return {
-            parentLayoutMode: parent ? state.nodes[parent].data.props.layoutMode : "flex"
+            parentLayoutMode: parent && state.nodes[parent] ? state.nodes[parent].data.props.layoutMode : "flex"
         }
     });
 

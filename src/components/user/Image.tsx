@@ -10,17 +10,19 @@ import { motion } from "framer-motion";
 import { StylesPanel } from "../editor/properties/StylesPanel";
 import { getSpacing } from "@/lib/utils";
 import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
+import { Switch } from "../ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { UserContainer } from "./Container";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 
 export const ImageSettings = () => {
-    const { actions: { setProp }, src, width, height, borderRadius, positionType } = useNode((node) => ({
+    const { actions: { setProp }, src, width, height, borderRadius, positionType, grayscale } = useNode((node) => ({
         src: node.data.props.src,
         width: node.data.props.width,
         height: node.data.props.height,
         borderRadius: node.data.props.borderRadius,
         positionType: node.data.props.positionType,
+        grayscale: node.data.props.grayscale,
     }));
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,7 +124,7 @@ export const ImageSettings = () => {
     );
 };
 
-export const UserImage = ({ src, width, height, borderRadius, padding, margin, background, minHeight, align, top, left, animationType, animationDuration, animationDelay, positionType, children, layoutMode }: any) => {
+export const UserImage = ({ src, width, height, borderRadius, padding, margin, background, minHeight, align, top, left, animationType, animationDuration, animationDelay, positionType, children, layoutMode, grayscale }: any) => {
     const { connectors: { connect, drag }, selected, isActive, parent, node, childNodes } = useNode((state) => ({
         selected: state.events.selected,
         isActive: state.events.selected,
@@ -267,7 +269,8 @@ export const UserImage = ({ src, width, height, borderRadius, padding, margin, b
                     height: "100%",
                     objectFit: "cover",
                     display: "block",
-                    borderRadius: `${borderRadius}px`
+                    borderRadius: `${borderRadius}px`,
+                    filter: grayscale ? "grayscale(100%)" : "none",
                 }}
                 alt="User Image"
             />

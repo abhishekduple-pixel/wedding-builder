@@ -30,6 +30,8 @@ interface Template {
     lastSaved: number;
 }
 
+import { storage } from "@/utils/storage";
+
 export const Topbar = () => {
     const { actions, query, canUndo, canRedo } = useEditor((state, query) => ({
         canUndo: query.history.canUndo(),
@@ -47,22 +49,26 @@ export const Topbar = () => {
 
     // Load templates and auto-load last state on mount
     useEffect(() => {
-        const savedTemplates = JSON.parse(localStorage.getItem("wedding-templates") || "[]");
-        setTemplates(savedTemplates);
+        const load = async () => {
+            const savedTemplatesStr = await storage.get("wedding-templates");
+            const savedTemplates = JSON.parse(savedTemplatesStr || "[]");
+            setTemplates(savedTemplates);
 
-        const lastId = localStorage.getItem("wedding-current-template-id");
-        if (lastId) {
-            loadTemplate(lastId);
-        } else {
-            // Attempt legacy load
-            const legacyState = localStorage.getItem("wedding-site-state");
-            if (legacyState) {
-                try {
-                    actions.deserialize(legacyState);
-                    showToast("Restored unsaved draft");
-                } catch (e) { console.error(e); }
+            const lastId = await storage.get("wedding-current-template-id");
+            if (lastId) {
+                await loadTemplate(lastId);
+            } else {
+                // Attempt legacy load
+                const legacyState = await storage.get("wedding-site-state");
+                if (legacyState) {
+                    try {
+                        actions.deserialize(legacyState);
+                        showToast("Restored unsaved draft");
+                    } catch (e) { console.error(e); }
+                }
             }
-        }
+        };
+        load();
     }, []);
 
     const showToast = (message: string, color: string = "#4ade80") => {
@@ -80,12 +86,12 @@ export const Topbar = () => {
         setTimeout(() => toast.remove(), 2000);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (currentTemplateId) {
             // Update existing
             const template = templates.find(t => t.id === currentTemplateId);
             if (template) {
-                saveToLocalStorage(template.name, currentTemplateId);
+                await saveToStorage(template.name, currentTemplateId);
                 showToast(`Saved "${template.name}"`);
             }
         } else {
@@ -95,7 +101,7 @@ export const Topbar = () => {
         }
     };
 
-    const saveToLocalStorage = (name: string, id: string) => {
+    const saveToStorage = async (name: string, id: string) => {
         const json = query.serialize();
         const updatedTemplates = templates.map(t => t.id === id ? { ...t, name, lastSaved: Date.now() } : t);
         
@@ -105,12 +111,12 @@ export const Topbar = () => {
         }
         
         setTemplates(updatedTemplates);
-        localStorage.setItem("wedding-templates", JSON.stringify(updatedTemplates));
-        localStorage.setItem(`wedding-template-${id}`, json);
-        localStorage.setItem("wedding-current-template-id", id);
+        await storage.save("wedding-templates", JSON.stringify(updatedTemplates));
+        await storage.save(`wedding-template-${id}`, json);
+        await storage.save("wedding-current-template-id", id);
     };
 
-    const handleCreateNewTemplate = () => {
+    const handleCreateNewTemplate = async () => {
         const id = crypto.randomUUID();
         const name = newTemplateName.trim() || "Untitled Project";
         
@@ -118,22 +124,22 @@ export const Topbar = () => {
         const newTemplates = [...templates, newTemplate];
         
         setTemplates(newTemplates);
-        localStorage.setItem("wedding-templates", JSON.stringify(newTemplates));
-        localStorage.setItem(`wedding-template-${id}`, query.serialize());
-        localStorage.setItem("wedding-current-template-id", id);
+        await storage.save("wedding-templates", JSON.stringify(newTemplates));
+        await storage.save(`wedding-template-${id}`, query.serialize());
+        await storage.save("wedding-current-template-id", id);
         
         setCurrentTemplateId(id);
         setSaveDialogOpen(false);
         showToast(`Created "${name}"`);
     };
 
-    const loadTemplate = (id: string) => {
-        const json = localStorage.getItem(`wedding-template-${id}`);
+    const loadTemplate = async (id: string) => {
+        const json = await storage.get(`wedding-template-${id}`);
         if (json) {
             try {
                 actions.deserialize(json);
                 setCurrentTemplateId(id);
-                localStorage.setItem("wedding-current-template-id", id);
+                await storage.save("wedding-current-template-id", id);
                 setLoadDialogOpen(false);
                 const template = templates.find(t => t.id === id);
                 showToast(`Loaded "${template?.name || 'Template'}"`);
@@ -144,16 +150,16 @@ export const Topbar = () => {
         }
     };
 
-    const deleteTemplate = (id: string, e: React.MouseEvent) => {
+    const deleteTemplate = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
         const newTemplates = templates.filter(t => t.id !== id);
         setTemplates(newTemplates);
-        localStorage.setItem("wedding-templates", JSON.stringify(newTemplates));
-        localStorage.removeItem(`wedding-template-${id}`);
+        await storage.save("wedding-templates", JSON.stringify(newTemplates));
+        await storage.remove(`wedding-template-${id}`);
         
         if (currentTemplateId === id) {
             setCurrentTemplateId(null);
-            localStorage.removeItem("wedding-current-template-id");
+            await storage.remove("wedding-current-template-id");
             actions.clearEvents(); 
             // We might want to clear the editor too, but maybe user wants to keep the content as draft?
             // Let's keep content but disassociate ID.

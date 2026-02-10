@@ -20,6 +20,9 @@ import { UserAnimatedShape } from "../user/AnimatedShape";
 import { UserChart } from "../user/Chart";
 import { UserTable } from "../user/Table";
 import { UserEmoji } from "../user/Emoji";
+import { UserModernHero } from "../user/sections/ModernHero";
+import { UserFooter } from "../user/sections/Footer";
+import { UserPrivateEventPopup } from "../user/sections/PrivateEventPopup";
 
 const SECTIONS = ["Home", "Story", "Schedule", "Gallery", "RSVP", "Travel", "Registry"];
 
@@ -47,6 +50,9 @@ const SectionPreview = ({ json }: { json: string | null }) => {
                     UserChart,
                     UserTable,
                     UserEmoji,
+                    UserModernHero,
+                    UserFooter,
+                    UserPrivateEventPopup,
                 }}
             >
                 <SectionContent json={json} />
@@ -84,12 +90,12 @@ const SectionContent = ({ json }: { json: string }) => {
                         });
                     }
                     if (node && node.linkedNodes && typeof node.linkedNodes === 'object') {
-                         Object.values(node.linkedNodes).forEach((linkedNodeId: any) => {
-                             if (typeof linkedNodeId === 'string') {
-                                 nodesToDelete.add(linkedNodeId);
-                                 collectDescendants(linkedNodeId);
-                             }
-                         });
+                        Object.values(node.linkedNodes).forEach((linkedNodeId: any) => {
+                            if (typeof linkedNodeId === 'string') {
+                                nodesToDelete.add(linkedNodeId);
+                                collectDescendants(linkedNodeId);
+                            }
+                        });
                     }
                 };
 
@@ -98,7 +104,7 @@ const SectionContent = ({ json }: { json: string }) => {
                     if (node && node.type && node.type.resolvedName === "HeroSection") {
                         nodesToDelete.add(key);
                         collectDescendants(key);
-                        
+
                         // Remove reference from parent
                         if (node.parent) {
                             const parent = nodes[node.parent];
