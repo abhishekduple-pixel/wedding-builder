@@ -14,7 +14,8 @@ import { SpacingControl } from "../editor/properties/SpacingControl";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 
 export const ContainerSettings = () => {
-  const { actions: { setProp }, background, padding, margin, flexDirection, alignItems, justifyContent, flexWrap, gap, borderRadius, backgroundImage, height, minHeight, width, layoutMode, gridColumns } = useNode((node) => ({
+  const { actions: { setProp }, id, background, padding, margin, flexDirection, alignItems, justifyContent, flexWrap, gap, borderRadius, backgroundImage, height, minHeight, width, layoutMode, gridColumns, dom } = useNode((node) => ({
+    id: node.id,
     background: node.data.props.background,
     padding: node.data.props.padding,
     margin: node.data.props.margin,
@@ -30,7 +31,43 @@ export const ContainerSettings = () => {
     width: node.data.props.width,
     layoutMode: node.data.props.layoutMode,
     gridColumns: node.data.props.gridColumns,
+    dom: node.dom
   }));
+
+  const { query, actions: editorActions } = useEditor();
+
+  const handleLayoutChange = (val: string) => {
+    if (!val) return;
+
+    // If switching TO canvas, snapshot child positions to prevent them from jumping to (0,0)
+    if (val === "canvas" && layoutMode !== "canvas" && dom) {
+      const containerRect = dom.getBoundingClientRect();
+      const childNodes = query.node(id).get().data.nodes;
+
+      childNodes.forEach((childId: string) => {
+        const childNode = query.node(childId).get();
+        const childDom = childNode.dom;
+
+        if (childDom) {
+          const childRect = childDom.getBoundingClientRect();
+          
+          // Calculate relative position
+          const relativeTop = childRect.top - containerRect.top;
+          const relativeLeft = childRect.left - containerRect.left;
+
+          editorActions.setProp(childId, (props: any) => {
+            props.top = Math.round(relativeTop);
+            props.left = Math.round(relativeLeft);
+            props.width = Math.round(childRect.width);
+            props.height = Math.round(childRect.height);
+            props.positionType = "absolute";
+          });
+        }
+      });
+    }
+
+    setProp((props: any) => props.layoutMode = val);
+  };
 
   return (
     <div className="space-y-4">
@@ -94,7 +131,7 @@ export const ContainerSettings = () => {
 
       <div className="space-y-2">
         <Label>Layout Mode</Label>
-        <ToggleGroup type="single" value={layoutMode || "flex"} onValueChange={(val) => val && setProp((props: any) => props.layoutMode = val)}>
+        <ToggleGroup type="single" value={layoutMode || "flex"} onValueChange={handleLayoutChange}>
           <ToggleGroupItem value="flex">Flex (Stack)</ToggleGroupItem>
           <ToggleGroupItem value="grid">Grid</ToggleGroupItem>
           <ToggleGroupItem value="canvas">Canvas (Free)</ToggleGroupItem>
@@ -208,12 +245,13 @@ export const ContainerSettings = () => {
 };
 
 export const UserContainer = ({ children, background, padding, margin, flexDirection, alignItems, justifyContent, flexWrap, gap, borderRadius, backgroundImage, height, minHeight, width, layoutMode, gridColumns, animationType, animationDuration, animationDelay, disableVisuals }: any) => {
-  const { connectors: { connect, drag }, selected, node, actions: { setProp }, top, left, childNodes } = useNode((state) => ({
+  const { connectors: { connect, drag }, selected, node, actions: { setProp }, top, left, childNodes, dom } = useNode((state) => ({
     selected: state.events.selected,
     node: state,
     top: state.data.props.top,
     left: state.data.props.left,
     childNodes: state.data.nodes, // Subscribe to children updates
+    dom: state.dom
   }));
 
   const { enabled, query, actions: editorActions } = useEditor((state) => ({
@@ -226,28 +264,33 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
     // Detect added node
     if (layoutMode === "canvas" && childNodes.length > prevChildNodesRef.current.length) {
       // A node was added!
-      // Find the new node (it's likely the last one, or the one not in prev)
       const addedNodeId = childNodes.find((id: string) => !prevChildNodesRef.current.includes(id));
 
       if (addedNodeId) {
-        // Check if we have a drop position recorded for THIS container
         const dropPos = (window as any).__craft_drop_pos;
 
-        // Only apply if the drop pos was recorded for US (to avoid cross-container pollution)
-        // And if it's recent? (optional, clear it after use)
-        if (dropPos && dropPos.containerId === node.id) {
+        if (dropPos && dropPos.containerId === node.id && dom) {
+          const containerRect = dom.getBoundingClientRect();
+          
           editorActions.setProp(addedNodeId, (props: any) => {
-            props.top = dropPos.y;
-            props.left = dropPos.x;
-            props.positionType = "absolute"; // FORCE absolute
+            // Get initial dimensions if possible, or default
+            const initialWidth = props.width || 100;
+            const initialHeight = props.height || 50;
+
+            // Constrain drop position within container boundaries
+            const constrainedX = Math.max(0, Math.min(dropPos.x, containerRect.width - initialWidth));
+            const constrainedY = Math.max(0, Math.min(dropPos.y, containerRect.height - initialHeight));
+
+            props.top = Math.round(constrainedY);
+            props.left = Math.round(constrainedX);
+            props.positionType = "absolute";
           });
-          // Clear it
           (window as any).__craft_drop_pos = null;
         }
       }
     }
     prevChildNodesRef.current = childNodes;
-  }, [childNodes, layoutMode, node.id, editorActions]);
+  }, [childNodes, layoutMode, node.id, editorActions, dom]);
 
   const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
 
@@ -312,8 +355,9 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
           : backgroundPattern,
         backgroundSize: backgroundImage ? "cover" : backgroundPatternSize,
         backgroundPosition: backgroundImage ? "center" : backgroundPatternPosition,
-        padding: getSpacing(padding),
+        padding: isSelfCanvas ? 0 : getSpacing(padding),
         margin: getSpacing(margin),
+        overflow: isSelfCanvas ? "hidden" : "visible", // Strictly clip to page boundary
 
         // Layout Config
         display: isSelfCanvas ? "block" : (layoutMode === "grid" ? "grid" : "flex"),

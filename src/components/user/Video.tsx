@@ -11,71 +11,111 @@ import { AnimationSection, getAnimationVariants } from "./AnimationSection";
 import { motion } from "framer-motion";
 import { StylesPanel } from "../editor/properties/StylesPanel";
 import { getSpacing, cn } from "@/lib/utils";
+import { useCanvasDrag } from "./hooks/useCanvasDrag";
 
 export const VideoSettings = () => {
-    const { actions: { setProp }, url, align } = useNode((node) => ({
+    const { actions: { setProp }, url, width, height, padding, margin, background, borderRadius, minHeight, autoplay, loop, controls, animationType, animationDuration, animationDelay, align, top, left } = useNode((node) => ({
         url: node.data.props.url,
+        width: node.data.props.width,
+        height: node.data.props.height,
+        padding: node.data.props.padding,
+        margin: node.data.props.margin,
+        background: node.data.props.background,
+        borderRadius: node.data.props.borderRadius,
+        minHeight: node.data.props.minHeight,
+        autoplay: node.data.props.autoplay,
+        loop: node.data.props.loop,
+        controls: node.data.props.controls,
+        animationType: node.data.props.animationType,
+        animationDuration: node.data.props.animationDuration,
+        animationDelay: node.data.props.animationDelay,
         align: node.data.props.align,
+        top: node.data.props.top,
+        left: node.data.props.left,
     }));
 
     return (
         <div className="space-y-4">
             <div className="space-y-2">
-                <Label>Video URL</Label>
+                <Label>Video URL (YouTube, Vimeo, or Direct .mp4)</Label>
                 <Input
-                    value={url}
+                    value={url || ""}
+                    placeholder="https://..."
                     onChange={(e) => setProp((props: any) => props.url = e.target.value)}
-                    placeholder="YouTube, Vimeo, or MP4 link"
                 />
-                <p className="text-xs text-gray-500">Supports YouTube, Vimeo, MP4</p>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t">
+                <Label>Position (Canvas Mode)</Label>
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                        <Label className="text-xs text-gray-400">Top</Label>
+                        <Input
+                            value={top || 0}
+                            type="number"
+                            onChange={(e) => setProp((props: any) => props.top = parseInt(e.target.value))}
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <Label className="text-xs text-gray-400">Left</Label>
+                        <Input
+                            value={left || 0}
+                            type="number"
+                            onChange={(e) => setProp((props: any) => props.left = parseInt(e.target.value))}
+                        />
+                    </div>
+                </div>
             </div>
 
             <div className="space-y-2">
                 <Label>Alignment</Label>
                 <ToggleGroup type="single" value={align || "center"} onValueChange={(val) => val && setProp((props: any) => props.align = val)}>
-                    <ToggleGroupItem value="left" aria-label="Align Left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="center" aria-label="Align Center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="right" aria-label="Align Right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
+                    <ToggleGroupItem value="left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
+                    <ToggleGroupItem value="center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
+                    <ToggleGroupItem value="right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
                 </ToggleGroup>
             </div>
 
-            <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between">
-                    <Label>Autoplay (MP4 only)</Label>
-                    <Switch
-                        checked={useNode((node) => node.data.props.autoplay).autoplay}
-                        onCheckedChange={(checked) => setProp((props: any) => props.autoplay = checked)}
-                    />
-                </div>
-                <div className="flex items-center justify-between">
-                    <Label>Loop (MP4 only)</Label>
-                    <Switch
-                        checked={useNode((node) => node.data.props.loop).loop}
-                        onCheckedChange={(checked) => setProp((props: any) => props.loop = checked)}
-                    />
-                </div>
-                <div className="flex items-center justify-between">
-                    <Label>Show Controls</Label>
-                    <Switch
-                        checked={useNode((node) => node.data.props.controls).controls}
-                        onCheckedChange={(checked) => setProp((props: any) => props.controls = checked)}
-                    />
-                </div>
+            <div className="flex items-center justify-between">
+                <Label>Autoplay</Label>
+                <Switch
+                    checked={autoplay}
+                    onCheckedChange={(val) => setProp((props: any) => props.autoplay = val)}
+                />
+            </div>
+
+            <div className="flex items-center justify-between">
+                <Label>Loop</Label>
+                <Switch
+                    checked={loop}
+                    onCheckedChange={(val) => setProp((props: any) => props.loop = val)}
+                />
+            </div>
+
+            <div className="flex items-center justify-between">
+                <Label>Controls</Label>
+                <Switch
+                    checked={controls}
+                    onCheckedChange={(val) => setProp((props: any) => props.controls = val)}
+                />
             </div>
 
             <StylesPanel />
+            <AnimationSection />
         </div>
     );
 };
 
-export const UserVideo = ({ url, width, padding, margin, background, borderRadius, minHeight, autoplay, loop, controls, animationType, animationDuration, animationDelay, align }: any): React.JSX.Element => {
-    const { connectors: { connect, drag }, selected } = useNode((state) => ({
+export const UserVideo = ({ url, width, height, padding, margin, background, borderRadius, minHeight, autoplay, loop, controls, animationType, animationDuration, animationDelay, align, top, left }: any): React.JSX.Element => {
+    const { connectors: { connect, drag }, selected, actions: { setProp } } = useNode((state) => ({
         selected: state.events.selected,
     }));
 
     const { enabled } = useEditor((state) => ({
         enabled: state.options.enabled
     }));
+
+    const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
 
     const getEmbedUrl = (url: string) => {
         if (!url) return "";
@@ -112,11 +152,18 @@ export const UserVideo = ({ url, width, padding, margin, background, borderRadiu
 
     return (
         <motion.div
-            ref={(ref: any) => connect(drag(ref))}
-            className={selected ? "ring-2 ring-blue-400" : ""}
+            ref={(ref: any) => {
+                if (isCanvas) {
+                    connect(ref);
+                } else {
+                    connect(drag(ref));
+                }
+            }}
+            {...dragProps}
             style={{
-                width: width || "100%",
-                minHeight: minHeight || "auto",
+                width: typeof width === 'number' ? `${width}px` : (width || "100%"),
+                height: typeof height === 'number' ? `${height}px` : (height || "auto"),
+                minHeight: typeof minHeight === 'number' ? `${minHeight}px` : (minHeight || "auto"),
                 padding: getSpacing(padding),
                 margin: getSpacing(margin),
                 backgroundColor: background,
@@ -124,6 +171,7 @@ export const UserVideo = ({ url, width, padding, margin, background, borderRadiu
                 display: "flex",
                 justifyContent: getJustifyContent(),
                 alignSelf: getJustifyContent(),
+                ...itemStyle,
             }}
             initial="initial"
             animate="animate"
@@ -163,6 +211,7 @@ UserVideo.craft = {
     props: {
         url: "",
         width: "100%",
+        height: "auto",
         padding: 0,
         margin: 0,
         background: "transparent",
@@ -175,6 +224,8 @@ UserVideo.craft = {
         animationDuration: 0.5,
         animationDelay: 0,
         align: "center",
+        top: 0,
+        left: 0,
     },
     related: {
         settings: VideoSettings,
