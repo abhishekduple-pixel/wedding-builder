@@ -352,7 +352,7 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
         }
       });
 
-      const targetMinHeight = maxBottom || 400;
+      const targetMinHeight = Math.max(800, maxBottom || 400);
 
       setProp((props: any) => {
         if (props.layoutMode === "canvas") {
