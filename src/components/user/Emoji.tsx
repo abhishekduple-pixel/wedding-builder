@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Slider } from "../ui/slider";
 import { Label } from "../ui/label";
 import { AnimationSection, getAnimationVariants } from "./AnimationSection";
+import { useCanvasDrag } from "./hooks/useCanvasDrag";
 
 interface EmojiProps {
     emoji?: string;
@@ -21,22 +22,38 @@ export const UserEmoji = ({
     animationDuration = 0.5,
     animationDelay = 0,
 }: EmojiProps) => {
-    const { connectors: { connect, drag } } = useNode();
+    const { connectors: { connect, drag }, actions: { setProp }, top, left, selected } = useNode((state) => ({
+        selected: state.events.selected,
+        top: state.data.props.top || 0,
+        left: state.data.props.left || 0,
+    }));
     const variants = getAnimationVariants(animationType || "none", animationDuration, animationDelay);
+    const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
 
     return (
-        <div
-            ref={(ref: any) => connect(drag(ref))}
-            style={{ display: "inline-block" }}
+        <motion.div
+            ref={(ref: any) => {
+                if (isCanvas) {
+                    connect(ref);
+                } else {
+                    connect(drag(ref));
+                }
+            }}
+            style={{
+                display: "inline-block",
+                ...itemStyle,
+            }}
+            className={selected ? "ring-2 ring-blue-400 ring-offset-2 rounded" : ""}
+            initial={variants.initial}
+            animate={variants.animate}
+            {...dragProps}
         >
-            <motion.div
+            <div
                 style={{ fontSize: `${size}px`, lineHeight: 1 }}
-                initial={variants.initial}
-                animate={variants.animate}
             >
                 {emoji}
-            </motion.div>
-        </div>
+            </div>
+        </motion.div>
     );
 };
 

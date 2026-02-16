@@ -104,12 +104,12 @@ export const Topbar = () => {
     const saveToStorage = async (name: string, id: string) => {
         const json = query.serialize();
         const updatedTemplates = templates.map(t => t.id === id ? { ...t, name, lastSaved: Date.now() } : t);
-        
+
         // If not in list (shouldn't happen for existing, but for safety)
         if (!updatedTemplates.find(t => t.id === id)) {
             updatedTemplates.push({ id, name, lastSaved: Date.now() });
         }
-        
+
         setTemplates(updatedTemplates);
         await storage.save("wedding-templates", JSON.stringify(updatedTemplates));
         await storage.save(`wedding-template-${id}`, json);
@@ -119,15 +119,15 @@ export const Topbar = () => {
     const handleCreateNewTemplate = async () => {
         const id = crypto.randomUUID();
         const name = newTemplateName.trim() || "Untitled Project";
-        
+
         const newTemplate = { id, name, lastSaved: Date.now() };
         const newTemplates = [...templates, newTemplate];
-        
+
         setTemplates(newTemplates);
         await storage.save("wedding-templates", JSON.stringify(newTemplates));
         await storage.save(`wedding-template-${id}`, query.serialize());
         await storage.save("wedding-current-template-id", id);
-        
+
         setCurrentTemplateId(id);
         setSaveDialogOpen(false);
         showToast(`Created "${name}"`);
@@ -156,11 +156,11 @@ export const Topbar = () => {
         setTemplates(newTemplates);
         await storage.save("wedding-templates", JSON.stringify(newTemplates));
         await storage.remove(`wedding-template-${id}`);
-        
+
         if (currentTemplateId === id) {
             setCurrentTemplateId(null);
             await storage.remove("wedding-current-template-id");
-            actions.clearEvents(); 
+            actions.clearEvents();
             // We might want to clear the editor too, but maybe user wants to keep the content as draft?
             // Let's keep content but disassociate ID.
         }
@@ -176,15 +176,15 @@ export const Topbar = () => {
             // but CraftJS doesn't have a direct 'clear' method exposed easily without passing empty state.
             // We can just reset current ID and let user build from scratch or refresh.
             // A better way is to deserialize a basic empty root.
-            
+
             // Basic empty state
             const emptyState = "{\"ROOT\":{\"type\":{\"resolvedName\":\"UserContainer\"},\"isCanvas\":true,\"props\":{\"background\":\"#ffffff\",\"padding\":10,\"minHeight\":\"800px\",\"width\":\"100%\",\"flexDirection\":\"column\",\"alignItems\":\"flex-start\"},\"displayName\":\"UserContainer\",\"custom\":{},\"hidden\":false,\"nodes\":[],\"linkedNodes\":{}}}";
-             try {
+            try {
                 actions.deserialize(emptyState);
-            } catch(e) {
-                 // fallback if emptyState is invalid
-                 window.location.reload(); // Simplest way to "New"
-                 return;
+            } catch (e) {
+                // fallback if emptyState is invalid
+                window.location.reload(); // Simplest way to "New"
+                return;
             }
 
             setCurrentTemplateId(null);
@@ -214,9 +214,9 @@ export const Topbar = () => {
 
             <div className="flex items-center gap-2">
                 {currentTemplateId && (
-                     <Badge variant="secondary" className="mr-2">
+                    <Badge variant="secondary" className="mr-2">
                         {currentTemplateName}
-                     </Badge>
+                    </Badge>
                 )}
 
                 <Button
@@ -260,8 +260,8 @@ export const Topbar = () => {
                                 <div className="text-center text-gray-500 py-8">No saved templates found.</div>
                             ) : (
                                 <div className="space-y-2">
-                                    {templates.sort((a,b) => b.lastSaved - a.lastSaved).map((t) => (
-                                        <div key={t.id} 
+                                    {templates.sort((a, b) => b.lastSaved - a.lastSaved).map((t) => (
+                                        <div key={t.id}
                                             className={cn(
                                                 "flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-gray-50 transition-colors",
                                                 currentTemplateId === t.id && "border-pink-500 bg-pink-50"
@@ -286,11 +286,11 @@ export const Topbar = () => {
                 </Dialog>
 
                 <Button variant="outline" size="sm" onClick={handleSave} className="bg-green-50 hover:bg-green-100 border-green-200 text-green-700">
-                    <Save className="h-4 w-4 mr-2" /> 
+                    <Save className="h-4 w-4 mr-2" />
                     {currentTemplateId ? "Save" : "Save As"}
                 </Button>
 
-                 <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+                <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Save Template</DialogTitle>

@@ -18,6 +18,18 @@ export const ModernHeroSettings = () => {
         overlayOpacity: node.data.props.overlayOpacity,
     }));
 
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, key: "imageLeft" | "imageCenter" | "imageRight") => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            if (reader.result) {
+                setProp((props: any) => (props as any)[key] = reader.result);
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
     return (
         <div className="space-y-4">
             <div className="space-y-2">
@@ -25,12 +37,36 @@ export const ModernHeroSettings = () => {
                 <Input value={imageLeft} onChange={(e) => setProp((props: any) => props.imageLeft = e.target.value)} />
             </div>
             <div className="space-y-2">
+                <Label>Upload Left Image</Label>
+                <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, "imageLeft")}
+                />
+            </div>
+            <div className="space-y-2">
                 <Label>Center Image URL</Label>
                 <Input value={imageCenter} onChange={(e) => setProp((props: any) => props.imageCenter = e.target.value)} />
             </div>
             <div className="space-y-2">
+                <Label>Upload Center Image</Label>
+                <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, "imageCenter")}
+                />
+            </div>
+            <div className="space-y-2">
                 <Label>Right Image URL</Label>
                 <Input value={imageRight} onChange={(e) => setProp((props: any) => props.imageRight = e.target.value)} />
+            </div>
+            <div className="space-y-2">
+                <Label>Upload Right Image</Label>
+                <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, "imageRight")}
+                />
             </div>
             <div className="flex items-center justify-between">
                 <Label>Grayscale Sides</Label>
@@ -95,16 +131,25 @@ export const UserModernHero = ({
                 
                 {/* Content */}
                 <div className="relative z-10 space-y-4">
-                     <Element id="hero_title" is={UserContainer} background="transparent" layoutMode="flex" alignItems="center" flexDirection="column" gap={20}>
+                     <Element
+                        id="hero_title"
+                        is={UserContainer}
+                        canvas
+                        background="transparent"
+                        layoutMode="flex"
+                        alignItems="center"
+                        flexDirection="column"
+                        gap={20}
+                     >
                         <UserText
-                            text="Home"
+                            text=""
                             fontSize={14}
                             color="#ffffff"
                             fontFamily="'Montserrat', sans-serif"
                             textAlign="center"
                         />
                         <UserText
-                            text="RAHUL & ASHNA"
+                            text=""
                             fontSize={64}
                             color="#ffffff"
                             fontFamily="'Playfair Display', serif"

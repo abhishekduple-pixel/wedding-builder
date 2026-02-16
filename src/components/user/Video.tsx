@@ -45,6 +45,25 @@ export const VideoSettings = () => {
                 />
             </div>
 
+            <div className="space-y-2">
+                <Label>Upload Video</Label>
+                <Input
+                    type="file"
+                    accept="video/*"
+                    onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            if (reader.result) {
+                                setProp((props: any) => props.url = reader.result);
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    }}
+                />
+            </div>
+
             <div className="space-y-4 pt-4 border-t">
                 <Label>Position (Canvas Mode)</Label>
                 <div className="grid grid-cols-2 gap-2">
@@ -119,6 +138,12 @@ export const UserVideo = ({ url, width, height, padding, margin, background, bor
 
     const getEmbedUrl = (url: string) => {
         if (!url) return "";
+
+        // If this is an inline data: video URL from an upload,
+        // we want to use the <video> tag instead of an iframe.
+        if (url.startsWith("data:video")) {
+            return "";
+        }
         
         // Robust YouTube Parser
         const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
@@ -139,7 +164,13 @@ export const UserVideo = ({ url, width, height, padding, margin, background, bor
     const embedUrl = getEmbedUrl(url);
     const variants = getAnimationVariants(animationType, animationDuration, animationDelay);
 
-    const isVideoFile = url?.toLowerCase().endsWith(".mp4") || url?.toLowerCase().endsWith(".webm");
+    const isVideoFile =
+        !!url &&
+        (
+            url.toLowerCase().endsWith(".mp4") ||
+            url.toLowerCase().endsWith(".webm") ||
+            url.startsWith("data:video")
+        );
 
     const getJustifyContent = () => {
         switch (align) {

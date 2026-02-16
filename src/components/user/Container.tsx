@@ -66,6 +66,22 @@ export const ContainerSettings = () => {
       });
     }
 
+    // If switching AWAY from canvas, reset auto-absolute children back to flow layout
+    if (layoutMode === "canvas" && val !== "canvas") {
+      const childNodes = query.node(id).get().data.nodes;
+
+      childNodes.forEach((childId: string) => {
+        editorActions.setProp(childId, (props: any) => {
+          // Only reset children that are absolutely positioned by canvas mode
+          if (props.positionType === "absolute") {
+            props.positionType = "relative";
+            props.top = 0;
+            props.left = 0;
+          }
+        });
+      });
+    }
+
     setProp((props: any) => props.layoutMode = val);
   };
 
@@ -106,6 +122,25 @@ export const ContainerSettings = () => {
           value={backgroundImage || ""}
           placeholder="https://..."
           onChange={(e) => setProp((props: any) => props.backgroundImage = e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Upload Background Image</Label>
+        <Input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+              if (reader.result) {
+                setProp((props: any) => props.backgroundImage = reader.result);
+              }
+            };
+            reader.readAsDataURL(file);
+          }}
         />
       </div>
 
@@ -250,13 +285,19 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
     node: state,
     top: state.data.props.top,
     left: state.data.props.left,
-    childNodes: state.data.nodes, // Subscribe to children updates
+    childNodes: state.data.nodes,
     dom: state.dom
   }));
 
   const { enabled, query, actions: editorActions } = useEditor((state) => ({
     enabled: state.options.enabled,
   }));
+
+  React.useEffect(() => {
+    if (disableVisuals && selected && node?.data?.parent) {
+      editorActions.selectNode(node.data.parent);
+    }
+  }, [disableVisuals, selected, node?.data?.parent, editorActions]);
 
   const prevChildNodesRef = React.useRef(childNodes);
 
@@ -291,6 +332,41 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
     }
     prevChildNodesRef.current = childNodes;
   }, [childNodes, layoutMode, node.id, editorActions, dom]);
+
+  React.useEffect(() => {
+    if (!dom || layoutMode !== "canvas") return;
+
+    const updateHeight = () => {
+      const containerRect = dom.getBoundingClientRect();
+      let maxBottom = 0;
+
+      const nodeData = query.node(node.id).get();
+      nodeData.data.nodes.forEach((childId: string) => {
+        const childNode = query.node(childId).get();
+        const childDom = childNode.dom;
+        if (!childDom) return;
+        const childRect = childDom.getBoundingClientRect();
+        const bottom = childRect.bottom - containerRect.top;
+        if (bottom > maxBottom) {
+          maxBottom = bottom;
+        }
+      });
+
+      const targetMinHeight = maxBottom || 400;
+
+      setProp((props: any) => {
+        if (props.layoutMode === "canvas") {
+          props.minHeight = targetMinHeight;
+        }
+      });
+    };
+
+    updateHeight();
+    window.addEventListener("craftjs-element-drag", updateHeight);
+    return () => {
+      window.removeEventListener("craftjs-element-drag", updateHeight);
+    };
+  }, [dom, layoutMode, query, node.id, setProp]);
 
   const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
 
@@ -353,8 +429,11 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
         backgroundImage: backgroundImage
           ? `url(${backgroundImage})`
           : backgroundPattern,
+        // Use 'cover' so the background fills the full width of the section
+        // without leaving empty space on the sides.
         backgroundSize: backgroundImage ? "cover" : backgroundPatternSize,
-        backgroundPosition: backgroundImage ? "center" : backgroundPatternPosition,
+        backgroundPosition: backgroundImage ? "center center" : backgroundPatternPosition,
+        backgroundRepeat: backgroundImage ? "no-repeat" : undefined,
         padding: isSelfCanvas ? 0 : getSpacing(padding),
         margin: getSpacing(margin),
         overflow: isSelfCanvas ? "hidden" : "visible", // Strictly clip to page boundary

@@ -1,13 +1,13 @@
 import { useEditor, useNode } from "@craftjs/core";
 import { useRef } from "react";
 
-const SNAP_GRID = 5;
+const SNAP_GRID = 1;
 
 export const useCanvasDrag = (top: number, left: number, actions: any) => {
-    const dragStartPos = useRef({ top: 0, left: 0 });
-    const { id, parent, dom } = useNode((node) => ({
+    const { parent, dom, positionType } = useNode((node) => ({
         parent: node.data.parent,
-        dom: node.dom
+        dom: node.dom,
+        positionType: node.data.props.positionType,
     }));
 
     const { parentLayoutMode, parentDom } = useEditor((state) => {
@@ -18,48 +18,56 @@ export const useCanvasDrag = (top: number, left: number, actions: any) => {
         }
     });
 
-    const isCanvas = parentLayoutMode === "canvas";
+    const isFree = parentLayoutMode === "canvas" || (positionType === "absolute" && parentLayoutMode === "canvas");
 
-    const dragProps = isCanvas ? {
+    const dragStartPos = useRef({ top: 0, left: 0, width: 0, height: 0 });
+
+    const dragProps = isFree ? {
         drag: true as const,
         dragMomentum: false,
-        dragConstraints: parentDom ? { current: parentDom } : undefined,
         dragElastic: 0,
-        layout: true, // Enable Framer Motion layout projection
+        // Critical: when we "commit" the new position into Craft props (top/left),
+        // we must ensure Framer's drag transform doesn't remain applied, otherwise the
+        // element ends up offset from the drop point (often double-applied).
+        dragSnapToOrigin: true,
+        onDragStart: () => {
+            if (!dom) return;
+            dragStartPos.current = {
+                top: top || 0,
+                left: left || 0,
+                width: dom.offsetWidth,
+                height: dom.offsetHeight,
+            };
+        },
         onDrag: () => {
-            // Force the selection border to follow the visual DOM element in real-time
             window.dispatchEvent(new CustomEvent("craftjs-element-drag"));
         },
-        onDragEnd: (e: any, info: any) => {
-            if (!dom || !parentDom) return;
+        onDragEnd: (_e: any, info: any) => {
+            if (!parentDom) return;
 
-            // 1. Get the current visual position of the element relative to the viewport
-            const rect = dom.getBoundingClientRect();
-            
-            // 2. Get the parent's position relative to the viewport
-            const parentRect = parentDom.getBoundingClientRect();
-            
-            // 3. The true relative position is simply the difference
-            // This ignores all previous state, offsets, and math - it's just "where is it right now?"
-            let newLeft = rect.left - parentRect.left;
-            let newTop = rect.top - parentRect.top;
+            const parentWidth = parentDom.clientWidth;
+            const parentHeight = parentDom.clientHeight;
+
+            let newTop = dragStartPos.current.top + info.offset.y;
+            let newLeft = dragStartPos.current.left + info.offset.x;
 
             const snap = (val: number) => Math.round(val / SNAP_GRID) * SNAP_GRID;
 
-            // 4. Update the persistent state to match this exact visual location
+            newTop = Math.max(0, Math.min(newTop, parentHeight - dragStartPos.current.height));
+            newLeft = Math.max(0, Math.min(newLeft, parentWidth - dragStartPos.current.width));
+
             actions.setProp((props: any) => {
                 props.top = snap(newTop);
                 props.left = snap(newLeft);
             });
-            
-            // 5. Final sync to snap the selection border to the new state position
+
             setTimeout(() => {
                 window.dispatchEvent(new CustomEvent("craftjs-element-drag"));
             }, 0);
         }
     } : {};
 
-    const itemStyle: React.CSSProperties = isCanvas ? {
+    const itemStyle: React.CSSProperties = isFree ? {
         position: "absolute",
         top: `${top}px`,
         left: `${left}px`,
@@ -68,7 +76,7 @@ export const useCanvasDrag = (top: number, left: number, actions: any) => {
     };
 
     return {
-        isCanvas,
+        isCanvas: isFree,
         dragProps,
         itemStyle
     };

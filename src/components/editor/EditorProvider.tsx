@@ -22,34 +22,31 @@ import { UserModernHero } from "../user/sections/ModernHero";
 import { UserFooter } from "../user/sections/Footer";
 import { UserPrivateEventPopup } from "../user/sections/PrivateEventPopup";
 
-// Register components for the editor
-console.log("Registering components:", { UserFooter, UserModernHero, UserPrivateEventPopup });
-
-// We will import more components here as we build them
+export const craftResolver = {
+    UserText,
+    UserContainer,
+    UserImage,
+    UserVideo,
+    UserPopup,
+    UserButton,
+    UserInput,
+    UserLabel,
+    UserTextarea,
+    UserSwitch,
+    UserSlider,
+    UserAnimatedShape,
+    UserChart,
+    UserTable,
+    UserEmoji,
+    UserModernHero,
+    UserFooter,
+    UserPrivateEventPopup,
+};
 
 export const EditorProvider = ({ children }: { children: React.ReactNode }) => {
     return (
         <Editor
-            resolver={{
-                UserText,
-                UserContainer,
-                UserImage,
-                UserVideo,
-                UserPopup,
-                UserButton,
-                UserInput,
-                UserLabel,
-                UserTextarea,
-                UserSwitch,
-                UserSlider,
-                UserAnimatedShape,
-                UserChart,
-                UserTable,
-                UserEmoji,
-                UserModernHero,
-                UserFooter,
-                UserPrivateEventPopup,
-            }}
+            resolver={craftResolver}
             onRender={RenderNode}
         >
             {children}

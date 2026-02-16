@@ -50,7 +50,7 @@ export const SectionSwitcher = () => {
                     "isCanvas": true,
                     "props": {
                         "width": "100%",
-                        "minHeight": "800px",
+                        "minHeight": "auto",
                         "padding": 20,
                         "background": "#ffffff",
                         "flexDirection": "column"

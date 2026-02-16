@@ -5,24 +5,7 @@ import { Button } from "../ui/button";
 import { Eye, X, Monitor, Smartphone } from "lucide-react";
 import { Editor, Frame, Element, useEditor } from "@craftjs/core";
 import { useAppContext } from "./AppContext";
-import { UserText } from "../user/Text";
-import { UserContainer } from "../user/Container";
-import { UserImage } from "../user/Image";
-import { UserVideo } from "../user/Video";
-import { UserPopup } from "../user/Popup";
-import { UserButton } from "../user/Button";
-import { UserInput } from "../user/Input";
-import { UserLabel } from "../user/Label";
-import { UserTextarea } from "../user/Textarea";
-import { UserSwitch } from "../user/Switch";
-import { UserSlider } from "../user/Slider";
-import { UserAnimatedShape } from "../user/AnimatedShape";
-import { UserChart } from "../user/Chart";
-import { UserTable } from "../user/Table";
-import { UserEmoji } from "../user/Emoji";
-import { UserModernHero } from "../user/sections/ModernHero";
-import { UserFooter } from "../user/sections/Footer";
-import { UserPrivateEventPopup } from "../user/sections/PrivateEventPopup";
+import { craftResolver } from "./EditorProvider";
 
 const SECTIONS = ["Home", "Story", "Schedule", "Gallery", "RSVP", "Travel", "Registry"];
 
@@ -34,26 +17,7 @@ const SectionPreview = ({ json }: { json: string | null }) => {
             {/* We strictly use a READ-ONLY editor here */}
             <Editor
                 enabled={false}
-                resolver={{
-                    UserText,
-                    UserContainer,
-                    UserImage,
-                    UserVideo,
-                    UserPopup,
-                    UserButton,
-                    UserInput,
-                    UserLabel,
-                    UserTextarea,
-                    UserSwitch,
-                    UserSlider,
-                    UserAnimatedShape,
-                    UserChart,
-                    UserTable,
-                    UserEmoji,
-                    UserModernHero,
-                    UserFooter,
-                    UserPrivateEventPopup,
-                }}
+                resolver={craftResolver}
             >
                 <SectionContent json={json} />
             </Editor>
@@ -136,6 +100,11 @@ export const FullPreview = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
 
+    const isMobile = previewDevice === "mobile";
+    const DESIGN_WIDTH = 1024;
+    const MOBILE_WIDTH = 375;
+    const scale = isMobile ? MOBILE_WIDTH / DESIGN_WIDTH : 1;
+
     // When opening, we should ensure the *current* section is saved to the 'sections' map
     // so it appears up-to-date in the preview.
     const handleOpenChange = (open: boolean) => {
@@ -175,10 +144,13 @@ export const FullPreview = () => {
                     </Button>
                 </div>
                 <div className="flex-1 overflow-y-auto bg-gray-100 p-8 flex justify-center">
-                    <div className={`transition-all duration-300 bg-white shadow-2xl ${previewDevice === "mobile"
-                        ? "w-93.75 min-h-166.75"
-                        : "w-full min-h-50"
-                        }`}>
+                    <div
+                        className="transition-all duration-300 bg-white shadow-2xl origin-top w-full max-w-[1024px]"
+                        style={isMobile ? {
+                            width: `${DESIGN_WIDTH}px`,
+                            transform: `scale(${scale})`,
+                        } : undefined}
+                    >
                         {SECTIONS
                             .filter(section => {
                                 const json = sections[section];

@@ -16,10 +16,9 @@ import { UserContainer } from "./Container";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 
 export const ImageSettings = () => {
-    const { actions: { setProp }, src, width, height, borderRadius, positionType, grayscale } = useNode((node) => ({
+    const { actions: { setProp }, src, width, borderRadius, positionType, grayscale } = useNode((node) => ({
         src: node.data.props.src,
         width: node.data.props.width,
-        height: node.data.props.height,
         borderRadius: node.data.props.borderRadius,
         positionType: node.data.props.positionType,
         grayscale: node.data.props.grayscale,
@@ -58,18 +57,6 @@ export const ImageSettings = () => {
                 />
             </div>
 
-            <div className="space-y-2">
-                <Label>Height</Label>
-                <Input
-                    value={height || ""}
-                    onChange={(e) => setProp((props: any) => {
-                        props.height = e.target.value;
-                        props.minHeight = e.target.value;
-                    })}
-                    placeholder="e.g. 300px"
-                />
-            </div>
-
             <div className="space-y-4 pt-4 border-t">
                 <Label>Movement Mode</Label>
                 <ToggleGroup type="single" value={positionType || "relative"} onValueChange={(val) => val && setProp((props: any) => props.positionType = val)}>
@@ -92,31 +79,6 @@ export const ImageSettings = () => {
                     <ToggleGroupItem value="center" aria-label="Align Center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
                     <ToggleGroupItem value="right" aria-label="Align Right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
                 </ToggleGroup>
-            </div>
-
-            {/* Position Settings (Canvas Mode) */}
-            <div className="space-y-4 pt-4 border-t">
-                <Label>Position (Canvas Mode)</Label>
-                <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                        <Label className="text-xs text-gray-400">Top</Label>
-                        <Input
-                            value={useNode((node) => node.data.props.top).top || 0}
-                            type="number"
-                            onChange={(e) => setProp((props: any) => props.top = parseInt(e.target.value))}
-                            disabled={positionType === "relative"}
-                        />
-                    </div>
-                    <div className="space-y-1">
-                        <Label className="text-xs text-gray-400">Left</Label>
-                        <Input
-                            value={useNode((node) => node.data.props.left).left || 0}
-                            type="number"
-                            onChange={(e) => setProp((props: any) => props.left = parseInt(e.target.value))}
-                            disabled={positionType === "relative"}
-                        />
-                    </div>
-                </div>
             </div>
 
             <StylesPanel />
@@ -173,8 +135,7 @@ export const UserImage = ({ src, width, height, borderRadius, padding, margin, b
                 src={src}
                 style={{
                     width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
+                    height: "auto",
                     display: "block",
                     borderRadius: `${borderRadius}px`,
                     filter: grayscale ? "grayscale(100%)" : "none",

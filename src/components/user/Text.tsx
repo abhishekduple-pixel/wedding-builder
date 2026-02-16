@@ -14,8 +14,8 @@ import { StylesPanel } from "../editor/properties/StylesPanel";
 import { getSpacing } from "@/lib/utils";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 
-export const TextSettings = () => {
-    const { actions: { setProp }, fontSize, color, textAlign, fontWeight, fontStyle, textDecoration, text } = useNode((node) => ({
+    export const TextSettings = () => {
+    const { actions: { setProp }, fontSize, color, textAlign, fontWeight, fontStyle, textDecoration, text, fontFamily } = useNode((node) => ({
         fontSize: node.data.props.fontSize,
         color: node.data.props.color,
         textAlign: node.data.props.textAlign,
@@ -23,6 +23,7 @@ export const TextSettings = () => {
         fontStyle: node.data.props.fontStyle,
         textDecoration: node.data.props.textDecoration,
         text: node.data.props.text,
+        fontFamily: node.data.props.fontFamily,
     }));
 
     return (
@@ -40,7 +41,7 @@ export const TextSettings = () => {
                 <Label>Font Family</Label>
                 <select
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                    value={useNode((node) => node.data.props.fontFamily).fontFamily || "sans-serif"}
+                    value={fontFamily || "sans-serif"}
                     onChange={(e) => setProp((props: any) => props.fontFamily = e.target.value)}
                 >
                     <option value="sans-serif">Sans Serif</option>
@@ -50,7 +51,6 @@ export const TextSettings = () => {
                     <option value="'Montserrat', sans-serif">Montserrat (Modern)</option>
                     <option value="'Great Vibes', cursive">Great Vibes (Script)</option>
                 </select>
-                <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet" />
             </div>
 
             <div className="space-y-2">
@@ -115,29 +115,42 @@ export const TextSettings = () => {
 
             <div className="space-y-2">
                 <Label>Style</Label>
-                <ToggleGroup type="multiple" value={[
-                    fontWeight === 'bold' ? 'bold' : '', 
-                    fontStyle === 'italic' ? 'italic' : '',
-                    textDecoration === 'underline' ? 'underline' : '',
-                    textDecoration === 'line-through' ? 'line-through' : '',
-                    textDecoration === 'overline' ? 'overline' : ''
-                ].filter(Boolean)} onValueChange={(vals) => {
-                    setProp((props: any) => {
-                        props.fontWeight = vals.includes('bold') ? 'bold' : 'normal';
-                        props.fontStyle = vals.includes('italic') ? 'italic' : 'normal';
-                        
-                        // Handle text decoration
-                        if (vals.includes('underline')) props.textDecoration = 'underline';
-                        else if (vals.includes('line-through')) props.textDecoration = 'line-through';
-                        else if (vals.includes('overline')) props.textDecoration = 'overline';
-                        else props.textDecoration = 'none';
-                    })
-                }}>
+                <ToggleGroup
+                    type="multiple"
+                    value={[
+                        // Treat any non-normal weight as bold for consistency
+                        fontWeight && fontWeight !== "normal" ? "bold" : "",
+                        fontStyle === "italic" ? "italic" : "",
+                        textDecoration && textDecoration.includes("underline") ? "underline" : "",
+                        textDecoration && textDecoration.includes("line-through") ? "line-through" : "",
+                        textDecoration && textDecoration.includes("overline") ? "overline" : "",
+                    ].filter(Boolean)}
+                    onValueChange={(vals) => {
+                        setProp((props: any) => {
+                            // Bold / Italic
+                            props.fontWeight = vals.includes("bold") ? "bold" : "normal";
+                            props.fontStyle = vals.includes("italic") ? "italic" : "normal";
+
+                            // Text decoration: allow at most one at a time, in priority order
+                            if (vals.includes("underline")) props.textDecoration = "underline";
+                            else if (vals.includes("line-through")) props.textDecoration = "line-through";
+                            else if (vals.includes("overline")) props.textDecoration = "overline";
+                            else props.textDecoration = "none";
+                        });
+                    }}
+                >
                     <ToggleGroupItem value="bold" aria-label="Bold"><Bold className="h-4 w-4" /></ToggleGroupItem>
                     <ToggleGroupItem value="italic" aria-label="Italic"><Italic className="h-4 w-4" /></ToggleGroupItem>
                     <ToggleGroupItem value="underline" aria-label="Underline"><Underline className="h-4 w-4" /></ToggleGroupItem>
                     <ToggleGroupItem value="line-through" aria-label="Strikethrough"><Strikethrough className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="overline" aria-label="Overline"><span className="text-xs font-bold underline decoration-2 decoration-current align-top" style={{ textDecorationLine: 'overline' }}>O</span></ToggleGroupItem>
+                    <ToggleGroupItem value="overline" aria-label="Overline">
+                        <span
+                            className="text-xs font-bold underline decoration-2 decoration-current align-top"
+                            style={{ textDecorationLine: "overline" }}
+                        >
+                            O
+                        </span>
+                    </ToggleGroupItem>
                 </ToggleGroup>
             </div>
 

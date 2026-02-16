@@ -14,7 +14,7 @@ export default function Home() {
       <EditorProvider>
         <Viewport>
           <Frame>
-            <Element is={UserContainer} canvas background="#ffffff" padding={10} minHeight="800px" width="100%" layoutMode="canvas">
+            <Element is={UserContainer} canvas background="#ffffff" padding={10} minHeight="auto" width="100%" layoutMode="canvas">
               <UserText text="Drag components from the left to start checking." fontSize={16} top={100} left={100} />
             </Element>
           </Frame>
