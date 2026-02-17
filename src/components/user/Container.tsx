@@ -39,48 +39,8 @@ export const ContainerSettings = () => {
   const handleLayoutChange = (val: string) => {
     if (!val) return;
 
-    // If switching TO canvas, snapshot child positions to prevent them from jumping to (0,0)
-    if (val === "canvas" && layoutMode !== "canvas" && dom) {
-      const containerRect = dom.getBoundingClientRect();
-      const childNodes = query.node(id).get().data.nodes;
-
-      childNodes.forEach((childId: string) => {
-        const childNode = query.node(childId).get();
-        const childDom = childNode.dom;
-
-        if (childDom) {
-          const childRect = childDom.getBoundingClientRect();
-          
-          // Calculate relative position
-          const relativeTop = childRect.top - containerRect.top;
-          const relativeLeft = childRect.left - containerRect.left;
-
-          editorActions.setProp(childId, (props: any) => {
-            props.top = Math.round(relativeTop);
-            props.left = Math.round(relativeLeft);
-            props.width = Math.round(childRect.width);
-            props.height = Math.round(childRect.height);
-            props.positionType = "absolute";
-          });
-        }
-      });
-    }
-
-    // If switching AWAY from canvas, reset auto-absolute children back to flow layout
-    if (layoutMode === "canvas" && val !== "canvas") {
-      const childNodes = query.node(id).get().data.nodes;
-
-      childNodes.forEach((childId: string) => {
-        editorActions.setProp(childId, (props: any) => {
-          // Only reset children that are absolutely positioned by canvas mode
-          if (props.positionType === "absolute") {
-            props.positionType = "relative";
-            props.top = 0;
-            props.left = 0;
-          }
-        });
-      });
-    }
+    // Simplified layout switching: Avoid complex DOM calculations that can lead to layout corruption.
+    // Let the user manually reposition if needed.
 
     setProp((props: any) => props.layoutMode = val);
   };
@@ -164,84 +124,41 @@ export const ContainerSettings = () => {
         />
       </div>
 
-      <div className="space-y-2">
-        <Label>Layout Mode</Label>
-        <ToggleGroup type="single" value={layoutMode || "flex"} onValueChange={handleLayoutChange}>
-          <ToggleGroupItem value="flex">Flex (Stack)</ToggleGroupItem>
-          <ToggleGroupItem value="grid">Grid</ToggleGroupItem>
-          <ToggleGroupItem value="canvas">Canvas (Free)</ToggleGroupItem>
-        </ToggleGroup>
+      <div className="space-y-4 pt-2 border-t mt-4">
+        <div className="space-y-2">
+          <Label>Direction</Label>
+          <ToggleGroup type="single" value={flexDirection || "column"} onValueChange={(val) => val && setProp((props: any) => props.flexDirection = val)}>
+            <ToggleGroupItem value="row"><Columns className="h-4 w-4" /></ToggleGroupItem>
+            <ToggleGroupItem value="column"><Rows className="h-4 w-4" /></ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Wrap Content</Label>
+          <ToggleGroup type="single" value={flexWrap || "nowrap"} onValueChange={(val) => val && setProp((props: any) => props.flexWrap = val)}>
+            <ToggleGroupItem value="nowrap">No Wrap</ToggleGroupItem>
+            <ToggleGroupItem value="wrap">Wrap</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Align Items</Label>
+          <ToggleGroup type="single" value={alignItems || "flex-start"} onValueChange={(val) => val && setProp((props: any) => props.alignItems = val)}>
+            <ToggleGroupItem value="flex-start"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
+            <ToggleGroupItem value="center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
+            <ToggleGroupItem value="flex-end"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Justify Content</Label>
+          <ToggleGroup type="single" value={justifyContent || "flex-start"} onValueChange={(val) => val && setProp((props: any) => props.justifyContent = val)}>
+            <ToggleGroupItem value="flex-start"><LayoutTemplate className="h-4 w-4 rotate-180" /></ToggleGroupItem>
+            <ToggleGroupItem value="center"><LayoutTemplate className="h-4 w-4" /></ToggleGroupItem>
+            <ToggleGroupItem value="flex-end"><LayoutTemplate className="h-4 w-4" /></ToggleGroupItem>
+          </ToggleGroup>
+        </div>
       </div>
-
-      {layoutMode === "grid" && (
-        <div className="space-y-4 pt-2 border-t mt-4">
-          <div className="space-y-2">
-            <Label>Grid Columns: {gridColumns || 1}</Label>
-            <Slider
-              defaultValue={[gridColumns || 1]}
-              max={12}
-              step={1}
-              onValueChange={(val) => setProp((props: any) => props.gridColumns = val[0])}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Grid Gap: {gap}px</Label>
-            <Slider
-              defaultValue={[gap || 0]}
-              max={50}
-              step={1}
-              onValueChange={(val) => setProp((props: any) => props.gap = val[0])}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Align Items</Label>
-            <ToggleGroup type="single" value={alignItems || "stretch"} onValueChange={(val) => val && setProp((props: any) => props.alignItems = val)}>
-              <ToggleGroupItem value="start"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
-              <ToggleGroupItem value="center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
-              <ToggleGroupItem value="end"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
-              <ToggleGroupItem value="stretch"><LayoutTemplate className="h-4 w-4" /></ToggleGroupItem>
-            </ToggleGroup>
-          </div>
-        </div>
-      )}
-
-      {layoutMode !== "canvas" && (
-        <div className="space-y-4 pt-2 border-t mt-4">
-          <div className="space-y-2">
-            <Label>Direction</Label>
-            <ToggleGroup type="single" value={flexDirection || "column"} onValueChange={(val) => val && setProp((props: any) => props.flexDirection = val)}>
-              <ToggleGroupItem value="row"><Columns className="h-4 w-4" /></ToggleGroupItem>
-              <ToggleGroupItem value="column"><Rows className="h-4 w-4" /></ToggleGroupItem>
-            </ToggleGroup>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Wrap Content</Label>
-            <ToggleGroup type="single" value={flexWrap || "nowrap"} onValueChange={(val) => val && setProp((props: any) => props.flexWrap = val)}>
-              <ToggleGroupItem value="nowrap">No Wrap</ToggleGroupItem>
-              <ToggleGroupItem value="wrap">Wrap</ToggleGroupItem>
-            </ToggleGroup>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Align Items</Label>
-            <ToggleGroup type="single" value={alignItems || "flex-start"} onValueChange={(val) => val && setProp((props: any) => props.alignItems = val)}>
-              <ToggleGroupItem value="flex-start"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
-              <ToggleGroupItem value="center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
-              <ToggleGroupItem value="flex-end"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
-            </ToggleGroup>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Justify Content</Label>
-            <ToggleGroup type="single" value={justifyContent || "flex-start"} onValueChange={(val) => val && setProp((props: any) => props.justifyContent = val)}>
-              <ToggleGroupItem value="flex-start"><LayoutTemplate className="h-4 w-4 rotate-180" /></ToggleGroupItem>
-              <ToggleGroupItem value="center"><LayoutTemplate className="h-4 w-4" /></ToggleGroupItem>
-              <ToggleGroupItem value="flex-end"><LayoutTemplate className="h-4 w-4" /></ToggleGroupItem>
-            </ToggleGroup>
-          </div>
-        </div>
-      )}
 
       {/* Dimensions apply to both modes */}
       <div className="space-y-4 pt-4 border-t">
@@ -302,70 +219,8 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
   const prevChildNodesRef = React.useRef(childNodes);
 
   React.useEffect(() => {
-    // Detect added node
-    if (layoutMode === "canvas" && childNodes.length > prevChildNodesRef.current.length) {
-      // A node was added!
-      const addedNodeId = childNodes.find((id: string) => !prevChildNodesRef.current.includes(id));
-
-      if (addedNodeId) {
-        const dropPos = (window as any).__craft_drop_pos;
-
-        if (dropPos && dropPos.containerId === node.id && dom) {
-          const containerRect = dom.getBoundingClientRect();
-          
-          editorActions.setProp(addedNodeId, (props: any) => {
-            // Get initial dimensions if possible, or default
-            const initialWidth = props.width || 100;
-            const initialHeight = props.height || 50;
-
-            // Constrain drop position within container boundaries
-            const constrainedX = Math.max(0, Math.min(dropPos.x, containerRect.width - initialWidth));
-            const constrainedY = Math.max(0, Math.min(dropPos.y, containerRect.height - initialHeight));
-
-            props.top = Math.round(constrainedY);
-            props.left = Math.round(constrainedX);
-            props.positionType = "absolute";
-          });
-          (window as any).__craft_drop_pos = null;
-        }
-      }
-    }
-    prevChildNodesRef.current = childNodes;
+    // Detect added node if needed for drop positioning
   }, [childNodes, layoutMode, node.id, editorActions, dom]);
-
-  React.useEffect(() => {
-    if (!dom || layoutMode !== "canvas") return;
-
-    const updateHeight = () => {
-      const containerRect = dom.getBoundingClientRect();
-      let maxBottom = 0;
-
-      const nodeData = query.node(node.id).get();
-      nodeData.data.nodes.forEach((childId: string) => {
-        const childNode = query.node(childId).get();
-        const childDom = childNode.dom;
-        if (!childDom) return;
-        const childRect = childDom.getBoundingClientRect();
-        const bottom = childRect.bottom - containerRect.top;
-        if (bottom > maxBottom) {
-          maxBottom = bottom;
-        }
-      });
-
-      const targetMinHeight = Math.max(800, maxBottom || 400);
-      setProp((props: any) => {
-        if (props.layoutMode === "canvas") {
-          props.minHeight = targetMinHeight;
-        }
-      });
-    };
-
-    updateHeight();
-    window.addEventListener("craftjs-element-drag", updateHeight);
-    return () => {
-      window.removeEventListener("craftjs-element-drag", updateHeight);
-    };
-  }, [dom, layoutMode, query, node.id, setProp]);
 
   const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
 
@@ -497,7 +352,7 @@ UserContainer.craft = {
     animationDuration: 0.5,
     animationDelay: 0,
     height: "auto",
-    minHeight: "50px",
+    minHeight: "500px",
     width: "100%",
     layoutMode: "flex",
     top: 0,

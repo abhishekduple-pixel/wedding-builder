@@ -40,7 +40,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         }
     });
 
-    const isCanvas = parentLayoutMode === "canvas";
+    const isCanvas = true; // Hybrid mode: everything is free-movable by default
     const currentRef = useRef<HTMLDivElement>(null);
     const dragStartPos = useRef({ top: 0, left: 0, width: 0, height: 0 });
 
@@ -70,91 +70,202 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         observer.observe(dom);
 
         return () => observer.disconnect();
-    }, [dom, isActive, isHovered]);
+    }, [dom, isActive, isHovered, props.top, props.left, props.width, props.height]);
 
-    const handleToolbarDrag = (e: any, info: any) => {
-        if (!isCanvas || !dom || !parent) return;
-        
-        const parentNode = query.node(parent).get();
+    // Unified Drag Handler for both Toolbar and Direct Component Drag
+    const handleStartDrag = (e: React.PointerEvent | PointerEvent) => {
+        if (!moveable || !isActive) return;
+
+        // We only want to block interaction if we are actually dragging.
+        // For the toolbar, we always drag.
+        // For the component, we need to be careful not to block text selection if the user just clicks.
+        // But since we are implementing "Free Move", usually left-click-drag IS move.
+        // We will stop propagation to prevent other interactions during drag.
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const startX = e.clientX;
+        const startY = e.clientY;
+
+        // If we are currently "relative", we need to "snap" to absolute to start floating
+        // We do this by calculating our current DOM offset relative to the parent
+        let startLeft = props.left || 0;
+        let startTop = props.top || 0;
+
+        if (dom && parent) {
+            const parentNode = query.node(parent).get();
+            const parentDom = parentNode.dom;
+            if (parentDom) {
+                const parentRect = parentDom.getBoundingClientRect();
+                const childRect = dom.getBoundingClientRect();
+
+                // Ensure we have current visual coordinates as the starting point
+                // This works even if we were 'relative' before
+                startTop = childRect.top - parentRect.top;
+                startLeft = childRect.left - parentRect.left;
+
+                // Commit this snapshot immediately so we "lift" off the stack
+                actions.setProp(id, (p: any) => {
+                    p.positionType = "absolute";
+                    p.top = startTop;
+                    p.left = startLeft;
+                    // Also capture dimensions to prevent collapsing if 'auto'
+                    p.width = childRect.width;
+                    p.height = childRect.height;
+                });
+            }
+        }
+
+        const parentNode = query.node(parent!).get();
         const parentDom = parentNode.dom;
         if (!parentDom) return;
 
-        // Use clientWidth/Height for the parent's available content area
         const parentWidth = parentDom.clientWidth;
         const parentHeight = parentDom.clientHeight;
-        
-        const snap = (val: number) => Math.round(val / SNAP_GRID) * SNAP_GRID;
+        const domWidth = dom ? dom.offsetWidth : 0;
+        const domHeight = dom ? dom.offsetHeight : 0;
 
-        actions.setProp(id, (p: any) => {
-            let newTop = dragStartPos.current.top + info.offset.y;
-            let newLeft = dragStartPos.current.left + info.offset.x;
+        // We need to keep track of the initial position LOCALLY for the drag duration
+        const initialTop = startTop;
+        const initialLeft = startLeft;
 
-            // Constrain within parent boundaries using captured dimensions
-            newTop = Math.max(0, Math.min(newTop, parentHeight - dragStartPos.current.height));
-            newLeft = Math.max(0, Math.min(newLeft, parentWidth - dragStartPos.current.width));
+        const onPointerMove = (moveEvent: PointerEvent) => {
+            const deltaX = moveEvent.clientX - startX;
+            const deltaY = moveEvent.clientY - startY;
 
-            p.top = snap(newTop);
-            p.left = snap(newLeft);
-        });
-    };
-
-    const resize = (direction: string, e: any, info: any) => {
-        if (!dom || !parent) return;
-        
-        const parentNode = query.node(parent).get();
-        const parentDom = parentNode.dom;
-        if (!parentDom) return;
-        const parentWidth = parentDom.clientWidth;
-        const parentHeight = parentDom.clientHeight;
-        
-        actions.setProp(id, (props: any) => {
-            // Get current numeric values or fallback to dom
-            const currentWidth = typeof props.width === 'number' ? props.width : dom.offsetWidth;
-            const currentHeight = typeof props.height === 'number' ? props.height : dom.offsetHeight;
-            const currentLeft = typeof props.left === 'number' ? props.left : 0;
-            const currentTop = typeof props.top === 'number' ? props.top : 0;
+            // Calculate new position based on the SNAPSHOT start position + delta
+            let newTop = initialTop + deltaY;
+            let newLeft = initialLeft + deltaX;
 
             const snap = (val: number) => Math.round(val / SNAP_GRID) * SNAP_GRID;
 
-            if (direction.includes("right")) {
-                const maxWidth = parentWidth - currentLeft;
-                props.width = snap(Math.min(maxWidth, Math.max(20, currentWidth + info.delta.x)));
-            }
-            if (direction.includes("bottom")) {
-                const maxHeight = parentHeight - currentTop;
-                props.height = snap(Math.min(maxHeight, Math.max(20, currentHeight + info.delta.y)));
-            }
-            if (direction.includes("left")) {
-                const deltaX = info.delta.x;
-                let newLeft = currentLeft + deltaX;
-                let newWidth = currentWidth - deltaX;
+            // Constrain
+            newTop = Math.max(0, Math.min(newTop, parentHeight - domHeight));
+            newLeft = Math.max(0, Math.min(newLeft, parentWidth - domWidth));
 
-                if (newLeft < 0) {
-                    newWidth += newLeft;
-                    newLeft = 0;
-                }
-                
-                if (newWidth >= 20) {
-                    props.width = snap(newWidth);
-                    props.left = snap(newLeft);
-                }
-            }
-            if (direction.includes("top")) {
-                const deltaY = info.delta.y;
-                let newTop = currentTop + deltaY;
-                let newHeight = currentHeight - deltaY;
+            // Apply directly to state
+            actions.setProp(id, (p: any) => {
+                p.top = snap(newTop);
+                p.left = snap(newLeft);
+                p.positionType = "absolute";
+            });
 
-                if (newTop < 0) {
-                    newHeight += newTop;
-                    newTop = 0;
-                }
-
-                if (newHeight >= 20) {
-                    props.height = snap(newHeight);
-                    props.top = snap(newTop);
-                }
+            // Force update visual elements immediately if possible (optimization)
+            if (dom) {
+                dom.style.top = `${newTop}px`;
+                dom.style.left = `${newLeft}px`;
+                dom.style.position = "absolute";
             }
-        });
+
+            window.dispatchEvent(new CustomEvent("craftjs-element-drag"));
+        };
+
+        const onPointerUp = () => {
+            document.removeEventListener("pointermove", onPointerMove);
+            document.removeEventListener("pointerup", onPointerUp);
+        };
+
+        document.addEventListener("pointermove", onPointerMove);
+        document.addEventListener("pointerup", onPointerUp);
+    };
+
+    // Attach handler to DOM for direct dragging
+    useEffect(() => {
+        if (dom && isActive && moveable) {
+            // We use 'mousedown' or 'pointerdown'
+            // We need to bind the extraction function
+            // Note: We cast to any because TS might complain about Event vs PointerEvent types matching exactly
+            dom.addEventListener("pointerdown", handleStartDrag as any);
+            return () => {
+                dom.removeEventListener("pointerdown", handleStartDrag as any);
+            }
+        }
+    }, [dom, isActive, moveable, props.left, props.top]); // Dependencies need to include props to ensure closure captures fresh state? 
+    // Actually, handleStartDrag reads props.left/top from closure.
+    // If we define handleStartDrag INSIDE the component (which we are), 
+    // then we need to re-bind it when props change, OR use refs for props.
+    // Ideally, we should use refs for mutable values inside the event handler to avoid re-binding constantly.
+    // BUT re-binding on prop change is acceptable for now.
+
+
+    // Resizing Logic using standard Pointer Events (fixes double-movement issue)
+    const handleResizeStart = (e: React.PointerEvent, direction: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!dom || !parent) return;
+
+        const parentNode = query.node(parent).get();
+        const parentDom = parentNode.dom;
+        if (!parentDom) return;
+
+        const startX = e.clientX;
+        const startY = e.clientY;
+
+        const startWidth = dom.offsetWidth;
+        const startHeight = dom.offsetHeight;
+        const startLeft = props.left || 0;
+        const startTop = props.top || 0;
+
+        const parentWidth = parentDom.clientWidth;
+        const parentHeight = parentDom.clientHeight;
+
+        const onPointerMove = (moveEvent: PointerEvent) => {
+            const deltaX = moveEvent.clientX - startX;
+            const deltaY = moveEvent.clientY - startY;
+
+            actions.setProp(id, (p: any) => {
+                const snap = (val: number) => Math.round(val / SNAP_GRID) * SNAP_GRID;
+
+                if (direction.includes("right")) {
+                    const maxWidth = parentWidth - startLeft;
+                    p.width = snap(Math.min(maxWidth, Math.max(20, startWidth + deltaX)));
+                }
+                if (direction.includes("bottom")) {
+                    const maxHeight = parentHeight - startTop;
+                    p.height = snap(Math.min(maxHeight, Math.max(20, startHeight + deltaY)));
+                }
+                if (direction.includes("left")) {
+                    let newLeft = startLeft + deltaX;
+                    let newWidth = startWidth - deltaX;
+
+                    if (newLeft < 0) {
+                        newWidth += newLeft;
+                        newLeft = 0;
+                    }
+
+                    if (newWidth >= 20) {
+                        p.width = snap(newWidth);
+                        p.left = snap(newLeft);
+                    }
+                }
+                if (direction.includes("top")) {
+                    const deltaY = moveEvent.clientY - startY;
+                    let newTop = startTop + deltaY;
+                    let newHeight = startHeight - deltaY;
+
+                    if (newTop < 0) {
+                        newHeight += newTop;
+                        newTop = 0;
+                    }
+
+                    if (newHeight >= 20) {
+                        p.height = snap(newHeight);
+                        p.top = snap(newTop);
+                    }
+                }
+            });
+        };
+
+        const onPointerUp = () => {
+            document.removeEventListener("pointermove", onPointerMove);
+            document.removeEventListener("pointerup", onPointerUp);
+            document.body.style.cursor = "default";
+        };
+
+        document.addEventListener("pointermove", onPointerMove);
+        document.addEventListener("pointerup", onPointerUp);
     };
 
     useEffect(() => {
@@ -229,25 +340,12 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
                             {isActive && (
                                 <>
                                     {moveable && (
-                                        <motion.div
+                                        <div
                                             className="cursor-move hover:bg-blue-600 p-0.5 rounded transition-colors"
-                                            drag={isCanvas}
-                                            dragMomentum={false}
-                                            onDragStart={() => {
-                                                if (dom) {
-                                                    dragStartPos.current = {
-                                                        top: props.top || 0,
-                                                        left: props.left || 0,
-                                                        width: dom.offsetWidth,
-                                                        height: dom.offsetHeight
-                                                    };
-                                                }
-                                            }}
-                                            onDrag={handleToolbarDrag}
-                                            ref={(ref: any) => !isCanvas && drag(ref)}
+                                            onPointerDown={handleStartDrag}
                                         >
                                             <Move size={12} />
-                                        </motion.div>
+                                        </div>
                                     )}
                                     {id !== ROOT_NODE && (
                                         <button
@@ -276,55 +374,39 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
                         {isActive && isCanvas && (
                             <>
                                 {/* Corners */}
-                                <motion.div
+                                <div
                                     className="absolute -top-1 -left-1 w-2.5 h-2.5 bg-white border-2 border-blue-500 rounded-full cursor-nwse-resize pointer-events-auto"
-                                    drag
-                                    dragMomentum={false}
-                                    onDrag={(e, info) => resize("top-left", e, info)}
+                                    onPointerDown={(e) => handleResizeStart(e, "top-left")}
                                 />
-                                <motion.div
+                                <div
                                     className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-white border-2 border-blue-500 rounded-full cursor-nesw-resize pointer-events-auto"
-                                    drag
-                                    dragMomentum={false}
-                                    onDrag={(e, info) => resize("top-right", e, info)}
+                                    onPointerDown={(e) => handleResizeStart(e, "top-right")}
                                 />
-                                <motion.div
+                                <div
                                     className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white border-2 border-blue-500 rounded-full cursor-nesw-resize pointer-events-auto"
-                                    drag
-                                    dragMomentum={false}
-                                    onDrag={(e, info) => resize("bottom-left", e, info)}
+                                    onPointerDown={(e) => handleResizeStart(e, "bottom-left")}
                                 />
-                                <motion.div
+                                <div
                                     className="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-white border-2 border-blue-500 rounded-full cursor-nwse-resize pointer-events-auto"
-                                    drag
-                                    dragMomentum={false}
-                                    onDrag={(e, info) => resize("bottom-right", e, info)}
+                                    onPointerDown={(e) => handleResizeStart(e, "bottom-right")}
                                 />
 
                                 {/* Sides */}
-                                <motion.div
+                                <div
                                     className="absolute top-1/2 -right-1 -translate-y-1/2 w-1.5 h-4 bg-white border border-blue-500 rounded-sm cursor-ew-resize pointer-events-auto"
-                                    drag="x"
-                                    dragMomentum={false}
-                                    onDrag={(e, info) => resize("right", e, info)}
+                                    onPointerDown={(e) => handleResizeStart(e, "right")}
                                 />
-                                <motion.div
+                                <div
                                     className="absolute top-1/2 -left-1 -translate-y-1/2 w-1.5 h-4 bg-white border border-blue-500 rounded-sm cursor-ew-resize pointer-events-auto"
-                                    drag="x"
-                                    dragMomentum={false}
-                                    onDrag={(e, info) => resize("left", e, info)}
+                                    onPointerDown={(e) => handleResizeStart(e, "left")}
                                 />
-                                <motion.div
+                                <div
                                     className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-1.5 bg-white border border-blue-500 rounded-sm cursor-ns-resize pointer-events-auto"
-                                    drag="y"
-                                    dragMomentum={false}
-                                    onDrag={(e, info) => resize("bottom", e, info)}
+                                    onPointerDown={(e) => handleResizeStart(e, "bottom")}
                                 />
-                                <motion.div
+                                <div
                                     className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-1.5 bg-white border border-blue-500 rounded-sm cursor-ns-resize pointer-events-auto"
-                                    drag="y"
-                                    dragMomentum={false}
-                                    onDrag={(e, info) => resize("top", e, info)}
+                                    onPointerDown={(e) => handleResizeStart(e, "top")}
                                 />
                             </>
                         )}
