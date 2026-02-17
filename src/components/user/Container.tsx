@@ -352,7 +352,7 @@ UserContainer.craft = {
     animationDuration: 0.5,
     animationDelay: 0,
     height: "auto",
-    minHeight: "500px",
+    minHeight: "50px",
     width: "100%",
     layoutMode: "flex",
     top: 0,

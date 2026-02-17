@@ -1,12 +1,12 @@
 "use client";
 
-import { useEditor } from "@craftjs/core";
+import { useEditor, Element } from "@craftjs/core";
+import { ROOT_NODE } from "@craftjs/utils";
 import { Button } from "../ui/button";
 import { Monitor, Play, Redo, Save, Smartphone, Undo, FilePlus, FolderOpen, Trash2, Check, X } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { Toggle } from "../ui/toggle";
 import { useAppContext } from "./AppContext";
-import { SectionSwitcher } from "./SectionSwitcher";
 import { FullPreview } from "./FullPreview";
 import { useEffect, useState } from "react";
 import {
@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Template {
     id: string;
@@ -31,6 +32,7 @@ interface Template {
 }
 
 import { storage } from "@/utils/storage";
+import { UserContainer } from "../user/Container";
 
 export const Topbar = () => {
     const { actions, query, canUndo, canRedo } = useEditor((state, query) => ({
@@ -43,9 +45,29 @@ export const Topbar = () => {
 
     const [templates, setTemplates] = useState<Template[]>([]);
     const [currentTemplateId, setCurrentTemplateId] = useState<string | null>(null);
+    const [currentRootId, setCurrentRootId] = useState<string | null>(null);
+    const [pageIds, setPageIds] = useState<string[]>([]);
+    const [addPageDialogOpen, setAddPageDialogOpen] = useState(false);
+    const [newPageName, setNewPageName] = useState("");
     const [saveDialogOpen, setSaveDialogOpen] = useState(false);
     const [loadDialogOpen, setLoadDialogOpen] = useState(false);
     const [newTemplateName, setNewTemplateName] = useState("");
+
+    const EMPTY_PAGE_STATE = "{\"ROOT\":{\"type\":{\"resolvedName\":\"UserContainer\"},\"isCanvas\":true,\"props\":{\"background\":\"#ffffff\",\"padding\":10,\"minHeight\":\"800px\",\"width\":\"100%\",\"flexDirection\":\"column\",\"alignItems\":\"flex-start\"},\"displayName\":\"UserContainer\",\"custom\":{},\"hidden\":false,\"nodes\":[],\"linkedNodes\":{}}}";
+
+    const broadcastPagesState = (pages: string[], currentId: string | null, sourceTemplates?: Template[]) => {
+        const templateSource = sourceTemplates || templates;
+        const meta = pages.map((id) => {
+            const t = templateSource.find(t => t.id === id);
+            return { id, name: t?.name || "Untitled" };
+        });
+        window.dispatchEvent(new CustomEvent("nin9-pages-state", {
+            detail: {
+                pages: meta,
+                currentTemplateId: currentId,
+            }
+        }));
+    };
 
     // Load templates and auto-load last state on mount
     useEffect(() => {
@@ -127,8 +149,13 @@ export const Topbar = () => {
         await storage.save("wedding-templates", JSON.stringify(newTemplates));
         await storage.save(`wedding-template-${id}`, query.serialize());
         await storage.save("wedding-current-template-id", id);
+        await storage.save(`wedding-page-root-${id}`, id);
+        await storage.save(`wedding-pages-${id}`, JSON.stringify([id]));
 
         setCurrentTemplateId(id);
+        setCurrentRootId(id);
+        setPageIds([id]);
+        broadcastPagesState([id], id, newTemplates);
         setSaveDialogOpen(false);
         showToast(`Created "${name}"`);
     };
@@ -143,6 +170,29 @@ export const Topbar = () => {
                 setLoadDialogOpen(false);
                 const template = templates.find(t => t.id === id);
                 showToast(`Loaded "${template?.name || 'Template'}"`);
+
+                let rootId = await storage.get(`wedding-page-root-${id}`);
+                if (!rootId) {
+                    rootId = id;
+                    await storage.save(`wedding-page-root-${id}`, rootId);
+                }
+
+                const pagesStr = await storage.get(`wedding-pages-${rootId}`);
+                let pages: string[];
+                if (pagesStr) {
+                    try {
+                        pages = JSON.parse(pagesStr);
+                    } catch {
+                        pages = [rootId];
+                    }
+                } else {
+                    pages = [rootId];
+                    await storage.save(`wedding-pages-${rootId}`, JSON.stringify(pages));
+                }
+
+                setCurrentRootId(rootId);
+                setPageIds(pages);
+                broadcastPagesState(pages, id);
             } catch (e) {
                 console.error(e);
                 showToast("Failed to load template", "#ef4444");
@@ -157,39 +207,139 @@ export const Topbar = () => {
         await storage.save("wedding-templates", JSON.stringify(newTemplates));
         await storage.remove(`wedding-template-${id}`);
 
+        const rootIdForPage = await storage.get(`wedding-page-root-${id}`);
+        if (rootIdForPage) {
+            const pagesStr = await storage.get(`wedding-pages-${rootIdForPage}`);
+            if (pagesStr) {
+                try {
+                    const pages: string[] = JSON.parse(pagesStr).filter((pid: string) => pid !== id);
+                    if (pages.length > 0) {
+                        await storage.save(`wedding-pages-${rootIdForPage}`, JSON.stringify(pages));
+                    } else {
+                        await storage.remove(`wedding-pages-${rootIdForPage}`);
+                    }
+                    if (currentRootId === rootIdForPage) {
+                        setPageIds(pages);
+                    }
+                } catch {
+                    // ignore parse errors
+                }
+            }
+            await storage.remove(`wedding-page-root-${id}`);
+        }
+
         if (currentTemplateId === id) {
             setCurrentTemplateId(null);
+            setCurrentRootId(null);
+            setPageIds([]);
             await storage.remove("wedding-current-template-id");
             actions.clearEvents();
-            // We might want to clear the editor too, but maybe user wants to keep the content as draft?
-            // Let's keep content but disassociate ID.
+            broadcastPagesState([], null, newTemplates);
+        } else if (currentRootId && pageIds.length > 0) {
+            broadcastPagesState(pageIds, currentTemplateId, newTemplates);
         }
         showToast("Template deleted", "#ef4444");
     };
 
+    const handleAddSection = () => {
+        const nodeTree = query.parseReactElement(
+            <Element is={UserContainer} canvas />
+        ).toNodeTree();
+
+        actions.addNodeTree(nodeTree, ROOT_NODE);
+        showToast("Added new section");
+    };
+
+    const handleAddPage = async () => {
+        const baseRootId = currentRootId || currentTemplateId;
+        if (!baseRootId) {
+            showToast("Please save this project before adding pages", "#f97316");
+            return;
+        }
+
+        const id = crypto.randomUUID();
+        const name = newPageName.trim() || `Page ${templates.length + 1}`;
+
+        const newTemplate = { id, name, lastSaved: Date.now() };
+        const newTemplates = [...templates, newTemplate];
+
+        setTemplates(newTemplates);
+        await storage.save("wedding-templates", JSON.stringify(newTemplates));
+        await storage.save(`wedding-template-${id}`, EMPTY_PAGE_STATE);
+        await storage.save("wedding-current-template-id", id);
+
+        const rootId = baseRootId;
+        let pages = pageIds;
+        if (!pages || pages.length === 0 || currentRootId !== rootId) {
+            pages = [rootId];
+        }
+        if (!pages.includes(rootId)) {
+            pages = [rootId, ...pages.filter(p => p !== rootId)];
+        }
+        if (!pages.includes(id)) {
+            pages = [...pages, id];
+        }
+
+        await storage.save(`wedding-page-root-${rootId}`, rootId);
+        await storage.save(`wedding-page-root-${id}`, rootId);
+        await storage.save(`wedding-pages-${rootId}`, JSON.stringify(pages));
+
+        try {
+            actions.deserialize(EMPTY_PAGE_STATE);
+            setCurrentTemplateId(id);
+            setCurrentRootId(rootId);
+            setPageIds(pages);
+            broadcastPagesState(pages, id, newTemplates);
+            showToast(`Created "${name}"`);
+        } catch (e) {
+            console.error(e);
+            showToast("Failed to create page", "#ef4444");
+        }
+    };
+
+    useEffect(() => {
+        const onAddSection = () => {
+            handleAddSection();
+        };
+        const onAddPage = () => {
+            actions.selectNode(undefined);
+            setNewPageName("");
+            setAddPageDialogOpen(true);
+        };
+        const onSetPage = (event: any) => {
+            const id = event.detail?.id as string | undefined;
+            if (id) {
+                loadTemplate(id);
+            }
+        };
+
+        window.addEventListener("nin9-add-section", onAddSection as EventListener);
+        window.addEventListener("nin9-add-page", onAddPage as EventListener);
+        window.addEventListener("nin9-set-page", onSetPage as EventListener);
+
+        return () => {
+            window.removeEventListener("nin9-add-section", onAddSection as EventListener);
+            window.removeEventListener("nin9-add-page", onAddPage as EventListener);
+            window.removeEventListener("nin9-set-page", onSetPage as EventListener);
+        };
+    }, []);
+
     const handleNewProject = () => {
         if (confirm("Are you sure? This will clear your current editor.")) {
             actions.clearEvents();
-            // Need a way to clear the canvas. serialize() returns JSON, deserialize takes JSON.
-            // We can deserialize an empty structure or default structure.
-            // For now, let's just reload page or clear via a trick if needed, 
-            // but CraftJS doesn't have a direct 'clear' method exposed easily without passing empty state.
-            // We can just reset current ID and let user build from scratch or refresh.
-            // A better way is to deserialize a basic empty root.
-
-            // Basic empty state
-            const emptyState = "{\"ROOT\":{\"type\":{\"resolvedName\":\"UserContainer\"},\"isCanvas\":true,\"props\":{\"background\":\"#ffffff\",\"padding\":10,\"minHeight\":\"800px\",\"width\":\"100%\",\"flexDirection\":\"column\",\"alignItems\":\"flex-start\"},\"displayName\":\"UserContainer\",\"custom\":{},\"hidden\":false,\"nodes\":[],\"linkedNodes\":{}}}";
             try {
-                actions.deserialize(emptyState);
+                actions.deserialize(EMPTY_PAGE_STATE);
             } catch (e) {
-                // fallback if emptyState is invalid
-                window.location.reload(); // Simplest way to "New"
+                window.location.reload();
                 return;
             }
 
             setCurrentTemplateId(null);
+            setCurrentRootId(null);
+            setPageIds([]);
             localStorage.removeItem("wedding-current-template-id");
             showToast("Started new project");
+            broadcastPagesState([], null);
         }
     };
 
@@ -199,9 +349,8 @@ export const Topbar = () => {
         <div className="border-b px-4 py-2 flex items-center justify-between bg-white shadow-sm">
             <div className="flex items-center gap-2">
                 <span className="font-bold text-lg mr-4 bg-linear-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
-                    Wedding Builder
+                    Nin9 Studio
                 </span>
-                <SectionSwitcher />
                 <ToggleGroup type="single" value={device} onValueChange={(val) => val && setDevice(val as "desktop" | "mobile")}>
                     <ToggleGroupItem value="desktop" aria-label="Desktop view">
                         <Monitor className="h-4 w-4" />
@@ -218,6 +367,48 @@ export const Topbar = () => {
                         {currentTemplateName}
                     </Badge>
                 )}
+
+                <Dialog
+                    open={addPageDialogOpen}
+                    onOpenChange={(open) => {
+                        setAddPageDialogOpen(open);
+                        if (!open) {
+                            setNewPageName("");
+                        }
+                    }}
+                >
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>New Page</DialogTitle>
+                            <DialogDescription>
+                                Enter a name for the new page.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="page-name" className="text-right">
+                                    Name
+                                </Label>
+                                <Input
+                                    id="page-name"
+                                    value={newPageName}
+                                    onChange={(e) => setNewPageName(e.target.value)}
+                                    className="col-span-3"
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button
+                                onClick={async () => {
+                                    await handleAddPage();
+                                    setAddPageDialogOpen(false);
+                                }}
+                            >
+                                Create Page
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
                 <Button
                     variant="ghost"

@@ -145,7 +145,7 @@ export const FullPreview = () => {
                 </div>
                 <div className="flex-1 overflow-y-auto bg-gray-100 p-8 flex justify-center">
                     <div
-                        className="transition-all duration-300 bg-white shadow-2xl origin-top w-full max-w-[1024px]"
+                        className="transition-all duration-300 bg-white shadow-2xl origin-top w-full max-w-5xl"
                         style={isMobile ? {
                             width: `${DESIGN_WIDTH}px`,
                             transform: `scale(${scale})`,

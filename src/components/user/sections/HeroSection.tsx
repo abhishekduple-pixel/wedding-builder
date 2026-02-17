@@ -41,7 +41,7 @@ export const HeroSection = ({ backgroundImage, padding, margin }: any) => {
     return (
         <div
             ref={(ref: any) => connect(drag(ref))}
-            className={`w-full relative min-h-[600px] flex flex-col items-center justify-center text-white ${selected ? "ring-2 ring-blue-500" : ""}`}
+            className={`w-full relative min-h-150 flex flex-col items-center justify-center text-white ${selected ? "ring-2 ring-blue-500" : ""}`}
             style={{
                 backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${backgroundImage})`,
                 backgroundSize: "cover",
