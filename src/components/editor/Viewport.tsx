@@ -33,7 +33,7 @@ export const Viewport = ({ children }: { children: React.ReactNode }) => {
                         <Toolbox />
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-8 relative flex flex-col items-center craftjs-renderer">
+                    <div className="flex-1 overflow-y-scroll !overflow-x-hidden p-8 relative flex flex-col items-center craftjs-renderer">
                         <div
                             className={cn(
                                 "bg-white shadow-lg transition-all duration-300 origin-top",
