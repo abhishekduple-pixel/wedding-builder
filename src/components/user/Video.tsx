@@ -38,11 +38,30 @@ export const VideoSettings = () => {
         <div className="space-y-4">
             <div className="space-y-2">
                 <Label>Video URL (YouTube, Vimeo, or Direct .mp4)</Label>
-                <Input
-                    value={url || ""}
-                    placeholder="https://..."
-                    onChange={(e) => setProp((props: any) => props.url = e.target.value)}
-                />
+                {(() => {
+                    const isUpload =
+                        typeof url === "string" &&
+                        (url.startsWith("blob:") || url.startsWith("data:video"));
+
+                    return (
+                        <>
+                            <Input
+                                value={isUpload ? "" : (url || "")}
+                                placeholder="https://..."
+                                onChange={(e) =>
+                                    setProp((props: any) => {
+                                        props.url = e.target.value;
+                                    })
+                                }
+                            />
+                            {isUpload && (
+                                <p className="text-[10px] text-gray-400">
+                                    Using uploaded video. Enter a URL to replace it.
+                                </p>
+                            )}
+                        </>
+                    );
+                })()}
             </div>
 
             <div className="space-y-2">
@@ -53,13 +72,10 @@ export const VideoSettings = () => {
                     onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                            if (reader.result) {
-                                setProp((props: any) => props.url = reader.result);
-                            }
-                        };
-                        reader.readAsDataURL(file);
+                        const objectUrl = URL.createObjectURL(file);
+                        setProp((props: any) => {
+                            props.url = objectUrl;
+                        });
                     }}
                 />
             </div>
@@ -169,7 +185,8 @@ export const UserVideo = ({ url, width, height, padding, margin, background, bor
         (
             url.toLowerCase().endsWith(".mp4") ||
             url.toLowerCase().endsWith(".webm") ||
-            url.startsWith("data:video")
+            url.startsWith("data:video") ||
+            url.startsWith("blob:")
         );
 
     const getJustifyContent = () => {

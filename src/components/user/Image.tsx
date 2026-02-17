@@ -16,36 +16,60 @@ import { UserContainer } from "./Container";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 
 export const ImageSettings = () => {
-    const { actions: { setProp }, src, width, borderRadius, positionType, grayscale } = useNode((node) => ({
+    const { actions: { setProp }, src, width, borderRadius, positionType, grayscale, sourceType, fileName } = useNode((node) => ({
         src: node.data.props.src,
         width: node.data.props.width,
         borderRadius: node.data.props.borderRadius,
         positionType: node.data.props.positionType,
         grayscale: node.data.props.grayscale,
+        sourceType: node.data.props.sourceType,
+        fileName: node.data.props.fileName,
     }));
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                if (reader.result) {
-                    setProp((props: any) => props.src = reader.result);
-                }
-            }
-            reader.readAsDataURL(file);
-        }
+        if (!file) return;
+
+        const objectUrl = URL.createObjectURL(file);
+        setProp((props: any) => {
+            props.src = objectUrl;
+            props.sourceType = "upload";
+            props.fileName = file.name;
+        });
     };
 
     return (
         <div className="space-y-4">
             <div className="space-y-2">
                 <Label>Image URL</Label>
-                <Input
-                    value={src}
-                    onChange={(e) => setProp((props: any) => props.src = e.target.value)}
-                    placeholder="https://..."
-                />
+                {(() => {
+                    const isUpload =
+                        sourceType === "upload" ||
+                        (typeof src === "string" &&
+                            (src.startsWith("blob:") || src.startsWith("data:")));
+
+                    return (
+                        <>
+                            <Input
+                                value={isUpload ? "" : (src || "")}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setProp((props: any) => {
+                                        props.src = value;
+                                        props.sourceType = "url";
+                                        props.fileName = "";
+                                    });
+                                }}
+                                placeholder="https://..."
+                            />
+                            {isUpload && (
+                                <p className="text-[10px] text-gray-400">
+                                    Using uploaded image{fileName ? ` (${fileName})` : ""}. Enter a URL to replace it.
+                                </p>
+                            )}
+                        </>
+                    );
+                })()}
             </div>
 
             <div className="space-y-2">
@@ -172,6 +196,8 @@ UserImage.craft = {
     displayName: "Image",
     props: {
         src: "https://placehold.co/600x400",
+        sourceType: "url",
+        fileName: "",
         width: "100%",
         height: "auto",
         padding: 0,

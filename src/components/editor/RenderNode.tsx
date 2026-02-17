@@ -51,12 +51,17 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         if (!dom) return;
 
         const update = () => {
+            const container = document.querySelector(".craftjs-renderer") as HTMLElement | null;
+            if (!container) return;
+
+            const containerRect = container.getBoundingClientRect();
             const rect = dom.getBoundingClientRect();
+
             setDimensions({
                 width: rect.width,
                 height: rect.height,
-                top: rect.top,
-                left: rect.left,
+                top: rect.top - containerRect.top,
+                left: rect.left - containerRect.left,
             });
         };
 
@@ -172,11 +177,16 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
 
     const scroll = () => {
         const { current: currentDOM } = currentRef;
-
         if (!currentDOM || !dom) return;
+
+        const container = document.querySelector(".craftjs-renderer") as HTMLElement | null;
+        if (!container) return;
+
+        const containerRect = container.getBoundingClientRect();
         const rect = dom.getBoundingClientRect();
-        currentDOM.style.top = `${rect.top}px`;
-        currentDOM.style.left = `${rect.left}px`;
+
+        currentDOM.style.top = `${rect.top - containerRect.top}px`;
+        currentDOM.style.left = `${rect.left - containerRect.left}px`;
         currentDOM.style.width = `${rect.width}px`;
         currentDOM.style.height = `${rect.height}px`;
     };
@@ -200,7 +210,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
                 ? createPortal(
                     <div
                         ref={currentRef}
-                        className="fixed z-9999 pointer-events-none"
+                        className="absolute z-9999 pointer-events-none"
                         style={{
                             left: dimensions.left,
                             top: dimensions.top,
@@ -319,7 +329,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
                             </>
                         )}
                     </div>,
-                    document.body
+                    (document.querySelector(".craftjs-renderer") as HTMLElement | null) || document.body
                 )
                 : null}
             {render}
