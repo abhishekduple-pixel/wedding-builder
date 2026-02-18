@@ -108,7 +108,7 @@ import { useAppContext } from "../editor/AppContext";
             </div>
 
             <div className="space-y-4 pt-4 border-t">
-                <Label>Dimensions</Label>
+                <Label>Text Alignment</Label>
                 <ToggleGroup type="single" value={textAlign || "left"} onValueChange={(val) => val && setProp((props: any) => props.textAlign = val)}>
                     <ToggleGroupItem value="left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
                     <ToggleGroupItem value="center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>

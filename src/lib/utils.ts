@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export const getSpacing = (space: any) => {
   if (typeof space === "number") return `${space}px`;
   if (!space) return "0px";
-  return `${space.top}px ${space.right}px ${space.bottom}px ${space.left}px`;
+  return `${space.top ?? 0}px ${space.right ?? 0}px ${space.bottom ?? 0}px ${space.left ?? 0}px`;
 };
 
 export const showToast = (message: string, color: string = "#4ade80") => {

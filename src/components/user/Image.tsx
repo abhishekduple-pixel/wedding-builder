@@ -33,6 +33,10 @@ export const ImageSettings = () => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Revoke previous blob URL to prevent memory leak
+        if (typeof src === "string" && src.startsWith("blob:")) {
+            URL.revokeObjectURL(src);
+        }
         const objectUrl = URL.createObjectURL(file);
         setProp((props: any) => {
             props.src = objectUrl;
