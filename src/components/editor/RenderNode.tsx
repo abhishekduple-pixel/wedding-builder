@@ -19,7 +19,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         name,
         moveable,
         deletable,
-        connectors: { drag },
+        connectors: {},
         parent,
         props,
     } = useNode((node) => ({
@@ -91,7 +91,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         // Only recalculate from DOM if element is not yet absolutely positioned
         if (props.positionType !== "absolute" && dom && parent) {
             const parentNode = query.node(parent).get();
-            const parentDom = parentNode.dom;
+            const parentDom = parentNode?.dom;
             if (parentDom) {
                 const parentRect = parentDom.getBoundingClientRect();
                 const childRect = dom.getBoundingClientRect();
@@ -110,6 +110,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
 
         if (!parent) return;
         const parentNode = query.node(parent).get();
+        if (!parentNode) return;
         const parentDom = parentNode.dom;
         if (!parentDom) return;
 
@@ -170,6 +171,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         if (!dom || !parent) return;
 
         const parentNode = query.node(parent).get();
+        if (!parentNode) return;
         const parentDom = parentNode.dom;
         if (!parentDom) return;
 

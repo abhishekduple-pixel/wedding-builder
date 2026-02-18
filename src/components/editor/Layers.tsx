@@ -31,7 +31,6 @@ export const Layers = () => {
         const node = nodes[id];
         if (!node) return null;
 
-        const isRoot = id === "ROOT";
         const isSelected = selected.has(id);
         const hasChildren = node.data.nodes && node.data.nodes.length > 0;
 
