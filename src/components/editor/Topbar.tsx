@@ -1,4 +1,5 @@
 "use client";
+"use no memo";
 
 import { useEditor, Element } from "@craftjs/core";
 import { ROOT_NODE } from "@craftjs/utils";

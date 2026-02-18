@@ -1,3 +1,6 @@
+"use client";
+"use no memo";
+
 import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "../ui/dialog";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";

@@ -1,3 +1,6 @@
+"use client";
+"use no memo";
+
 import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEditor } from "@craftjs/core";
