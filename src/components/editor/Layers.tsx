@@ -26,14 +26,14 @@ export const Layers = () => {
     };
 
     const LayerItem = ({ id, depth = 0 }: { id: string, depth?: number }) => {
+        const [expanded, setExpanded] = React.useState(true);
+
         const node = nodes[id];
         if (!node) return null;
 
         const isRoot = id === "ROOT";
         const isSelected = selected.has(id);
         const hasChildren = node.data.nodes && node.data.nodes.length > 0;
-        // Simple state for expansion, default expanded
-        const [expanded, setExpanded] = React.useState(true);
 
         return (
             <div className="select-none">

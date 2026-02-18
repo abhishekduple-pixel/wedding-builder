@@ -74,11 +74,57 @@ export const Topbar = () => {
         }));
     };
 
+    const loadTemplate = async (id: string) => {
+        const json = await storage.get(`wedding-template-${id}`);
+        if (json) {
+            try {
+                actions.deserialize(json);
+                setCurrentTemplateId(id);
+                await storage.save("wedding-current-template-id", id);
+                setLoadDialogOpen(false);
+                const template = templates.find(t => t.id === id);
+                showToast(`Loaded "${template?.name || 'Template'}"`);
+
+                let rootId = await storage.get(`wedding-page-root-${id}`);
+                if (!rootId) {
+                    rootId = id;
+                    await storage.save(`wedding-page-root-${id}`, rootId);
+                }
+
+                const pagesStr = await storage.get(`wedding-pages-${rootId}`);
+                let pages: string[];
+                if (pagesStr) {
+                    try {
+                        pages = JSON.parse(pagesStr);
+                    } catch {
+                        pages = [rootId];
+                    }
+                } else {
+                    pages = [rootId];
+                    await storage.save(`wedding-pages-${rootId}`, JSON.stringify(pages));
+                }
+
+                setCurrentRootId(rootId);
+                setPageIds(pages);
+                broadcastPagesState(pages, id);
+            } catch (e) {
+                console.error(e);
+                showToast("Failed to load template", "#ef4444");
+            }
+        }
+    };
+
     // Load templates and auto-load last state on mount
     useEffect(() => {
         const load = async () => {
             const savedTemplatesStr = await storage.get("wedding-templates");
-            const savedTemplates = JSON.parse(savedTemplatesStr || "[]");
+            let savedTemplates: Template[] = [];
+            try {
+                savedTemplates = JSON.parse(savedTemplatesStr || "[]");
+            } catch {
+                console.error("Corrupted templates data, resetting");
+                savedTemplates = [];
+            }
             setTemplates(savedTemplates);
 
             const lastId = await storage.get("wedding-current-template-id");
@@ -149,46 +195,6 @@ export const Topbar = () => {
         broadcastPagesState([id], id, newTemplates);
         setSaveDialogOpen(false);
         showToast(`Created "${name}"`);
-    };
-
-    const loadTemplate = async (id: string) => {
-        const json = await storage.get(`wedding-template-${id}`);
-        if (json) {
-            try {
-                actions.deserialize(json);
-                setCurrentTemplateId(id);
-                await storage.save("wedding-current-template-id", id);
-                setLoadDialogOpen(false);
-                const template = templates.find(t => t.id === id);
-                showToast(`Loaded "${template?.name || 'Template'}"`);
-
-                let rootId = await storage.get(`wedding-page-root-${id}`);
-                if (!rootId) {
-                    rootId = id;
-                    await storage.save(`wedding-page-root-${id}`, rootId);
-                }
-
-                const pagesStr = await storage.get(`wedding-pages-${rootId}`);
-                let pages: string[];
-                if (pagesStr) {
-                    try {
-                        pages = JSON.parse(pagesStr);
-                    } catch {
-                        pages = [rootId];
-                    }
-                } else {
-                    pages = [rootId];
-                    await storage.save(`wedding-pages-${rootId}`, JSON.stringify(pages));
-                }
-
-                setCurrentRootId(rootId);
-                setPageIds(pages);
-                broadcastPagesState(pages, id);
-            } catch (e) {
-                console.error(e);
-                showToast("Failed to load template", "#ef4444");
-            }
-        }
     };
 
     const deleteTemplate = async (id: string, e: React.MouseEvent) => {

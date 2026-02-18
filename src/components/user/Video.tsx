@@ -73,6 +73,10 @@ export const VideoSettings = () => {
                     onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
+                        // Revoke previous blob URL to prevent memory leak
+                        if (typeof url === "string" && url.startsWith("blob:")) {
+                            URL.revokeObjectURL(url);
+                        }
                         const objectUrl = URL.createObjectURL(file);
                         setProp((props: any) => {
                             props.url = objectUrl;
