@@ -285,7 +285,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
                                     {id !== ROOT_NODE && (
                                         <button
                                             className="hover:bg-blue-600 p-0.5 rounded transition-colors"
-                                            onClick={() => actions.selectNode(parent!)}
+                                            onClick={() => parent && actions.selectNode(parent)}
                                         >
                                             <ArrowUp size={12} />
                                         </button>

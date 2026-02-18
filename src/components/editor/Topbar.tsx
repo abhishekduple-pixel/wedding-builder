@@ -141,7 +141,7 @@ export const Topbar = () => {
                 }
             }
         };
-        load();
+        load().catch((e) => console.error("Failed to load templates on mount", e));
     }, []);
 
 
