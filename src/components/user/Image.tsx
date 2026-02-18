@@ -1,4 +1,5 @@
 "use client";
+"use no memo";
 
 import { useNode, useEditor, Element } from "@craftjs/core";
 import React, { useRef } from "react";

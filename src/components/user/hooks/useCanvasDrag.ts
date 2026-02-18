@@ -1,3 +1,4 @@
+"use no memo";
 import { useEditor, useNode } from "@craftjs/core";
 import { useRef } from "react";
 
