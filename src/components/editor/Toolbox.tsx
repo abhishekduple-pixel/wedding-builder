@@ -25,9 +25,9 @@ import { UserChart } from "../user/Chart";
 import { UserTable } from "../user/Table";
 import { UserEmoji } from "../user/Emoji";
 import { UserModernHero } from "../user/sections/ModernHero";
-import { UserFooter } from "../user/sections/Footer";
-import { UserNavbar } from "../user/Navbar";
-import { UserPrivateEventPopup } from "../user/sections/PrivateEventPopup";
+// import { UserFooter } from "../user/sections/Footer";
+// import { UserNavbar } from "../user/Navbar";
+// import { UserPrivateEventPopup } from "../user/sections/PrivateEventPopup";
 import { MousePointerClick, TextCursorInput, ToggleRight, SlidersHorizontal, Tag, RectangleHorizontal, Sparkles, PieChart, Table as TableIcon, Smile, LayoutTemplate, PanelBottom, Lock } from "lucide-react";
 
 type CategoryId = "text" | "media" | "layout" | "elements";
@@ -323,7 +323,7 @@ export const Toolbox = () => {
                                         <div className="space-y-2">
                                             <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Blocks</Label>
                                             <div className="grid grid-cols-2 gap-2">
-                                                <Button
+                                                {/* <Button
                                                     variant="outline"
                                                     className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
                                                     ref={(ref: any) => connectors.create(
@@ -357,15 +357,15 @@ export const Toolbox = () => {
                                                 >
                                                     <LayoutTemplate className="h-6 w-6" />
                                                     <span className="text-xs">Timeline</span>
-                                                </Button>
-                                                <Button
+                                                </Button> */}
+                                                {/* <Button
                                                     ref={(ref: any) => connectors.create(ref, <UserNavbar />)}
                                                     variant="outline"
                                                     className="flex flex-col gap-2 h-20 hover:bg-muted"
                                                 >
                                                     <PanelBottom className="w-6 h-6" />
                                                     <span className="text-xs">Navbar</span>
-                                                </Button>
+                                                </Button> */}
                                                 <Button
                                                     ref={(ref: any) => connectors.create(ref, <UserModernHero />)}
                                                     variant="outline"
@@ -374,7 +374,7 @@ export const Toolbox = () => {
                                                     <LayoutTemplate className="w-6 h-6" />
                                                     <span className="text-xs">Modern Hero</span>
                                                 </Button>
-                                                <Button
+                                                {/* <Button
                                                     ref={(ref: any) => connectors.create(ref, <UserFooter />)}
                                                     variant="outline"
                                                     className="flex flex-col gap-2 h-20 hover:bg-muted"
@@ -389,7 +389,7 @@ export const Toolbox = () => {
                                                 >
                                                     <Lock className="w-6 h-6" />
                                                     <span className="text-xs">Event Access</span>
-                                                </Button>
+                                                </Button> */}
                                             </div>
                                         </div>
                                     </div>
