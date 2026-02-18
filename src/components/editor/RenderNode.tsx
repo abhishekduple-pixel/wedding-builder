@@ -84,7 +84,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         // We will stop propagation to prevent other interactions during drag.
 
         e.preventDefault();
-        e.stopPropagation();
+        (e as Event).stopImmediatePropagation();
 
         const startX = e.clientX;
         const startY = e.clientY;
@@ -94,24 +94,20 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         let startLeft = props.left || 0;
         let startTop = props.top || 0;
 
-        if (dom && parent) {
+        // Only recalculate from DOM if element is not yet absolutely positioned
+        if (props.positionType !== "absolute" && dom && parent) {
             const parentNode = query.node(parent).get();
             const parentDom = parentNode.dom;
             if (parentDom) {
                 const parentRect = parentDom.getBoundingClientRect();
                 const childRect = dom.getBoundingClientRect();
-
-                // Ensure we have current visual coordinates as the starting point
-                // This works even if we were 'relative' before
                 startTop = childRect.top - parentRect.top;
                 startLeft = childRect.left - parentRect.left;
 
-                // Commit this snapshot immediately so we "lift" off the stack
                 actions.setProp(id, (p: any) => {
                     p.positionType = "absolute";
                     p.top = startTop;
                     p.left = startLeft;
-                    // Also capture dimensions to prevent collapsing if 'auto'
                     p.width = childRect.width;
                     p.height = childRect.height;
                 });
@@ -151,13 +147,6 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
                 p.left = snap(newLeft);
                 p.positionType = "absolute";
             });
-
-            // Force update visual elements immediately if possible (optimization)
-            if (dom) {
-                dom.style.top = `${newTop}px`;
-                dom.style.left = `${newLeft}px`;
-                dom.style.position = "absolute";
-            }
 
             window.dispatchEvent(new CustomEvent("craftjs-element-drag"));
         };

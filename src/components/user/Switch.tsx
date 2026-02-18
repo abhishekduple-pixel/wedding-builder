@@ -51,13 +51,7 @@ export const UserSwitch = ({ label, checked, padding, margin, width, background,
 
     return (
         <motion.div
-            ref={(ref: any) => {
-                if (isCanvas) {
-                    connect(ref);
-                } else {
-                    connect(drag(ref));
-                }
-            }}
+            ref={(ref: any) => connect(drag(ref))}
             style={{
                 width: width === "100%" ? "auto" : width,
                 padding: getSpacing(padding),

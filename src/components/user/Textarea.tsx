@@ -65,13 +65,7 @@ export const UserTextarea = ({ placeholder, value, rows, padding, margin, width,
 
     return (
         <motion.div
-            ref={(ref: any) => {
-                if (isCanvas) {
-                    connect(ref);
-                } else {
-                    connect(drag(ref));
-                }
-            }}
+            ref={(ref: any) => connect(drag(ref))}
             style={{
                 width: width || "100%",
                 padding: getSpacing(padding),

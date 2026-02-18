@@ -33,13 +33,7 @@ export const UserEmoji = ({
 
     return (
         <motion.div
-            ref={(ref: any) => {
-                if (isCanvas) {
-                    connect(ref);
-                } else {
-                    connect(drag(ref));
-                }
-            }}
+            ref={(ref: any) => connect(drag(ref))}
             style={{
                 display: "inline-block",
                 ...itemStyle,

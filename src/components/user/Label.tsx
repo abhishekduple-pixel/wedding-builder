@@ -42,13 +42,7 @@ export const UserLabel = ({ text, padding, margin, width, background, borderRadi
 
     return (
         <motion.div
-            ref={(ref: any) => {
-                if (isCanvas) {
-                    connect(ref);
-                } else {
-                    connect(drag(ref));
-                }
-            }}
+            ref={(ref: any) => connect(drag(ref))}
             style={{
                 width: width === "100%" ? "auto" : width,
                 padding: getSpacing(padding),
