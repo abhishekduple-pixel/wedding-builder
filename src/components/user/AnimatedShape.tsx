@@ -41,11 +41,9 @@ export const UserAnimatedShape = ({
         node: state
     }));
 
-    // Access parent node to check if it's a "canvas" container
     const { actions: { setProp } } = useNode();
     const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
 
-    // Enable free movement if parent is Canvas OR user explicitly selected "Free Movement" (absolute)
     const isFree = isCanvas || positionType === "absolute";
 
     const entryVariants = getAnimationVariants(animationType || "none", animationDuration, animationDelay);
@@ -106,13 +104,7 @@ export const UserAnimatedShape = ({
 
     return (
         <motion.div
-            ref={(ref: any) => {
-                if (isFree) {
-                    connect(ref);
-                } else {
-                    connect(drag(ref));
-                }
-            }}
+            ref={(ref: any) => connect(drag(ref))}
             {...dragProps}
             style={{
                 display: "inline-block",

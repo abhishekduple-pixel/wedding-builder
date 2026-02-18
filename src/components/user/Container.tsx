@@ -252,19 +252,7 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
 
   return (
     <motion.div
-      ref={(ref: any) => {
-        // If we are IN a canvas (isCanvas=true), we use framer motion drag.
-        // If we are NOT in a canvas, checking if we are draggable by Craft?
-        // Craft default drag handle usually on the component itself if not canvas?
-        // Actually, for nested layouts, typically the USER has to select the parent to drag it.
-        // But here, if isCanvas=true, we want to allow dragging THIS container.
-        // IsCanvas refers to "Am I inside a canvas?".
-        if (isCanvas) {
-          connect(ref);
-        } else {
-          connect(drag(ref));
-        }
-      }}
+      ref={(ref: any) => connect(drag(ref))}
       onDragOver={(e) => {
         if (isSelfCanvas) {
           e.preventDefault(); // Allow drop

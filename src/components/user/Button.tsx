@@ -157,13 +157,7 @@ export const UserButton = ({ text, url, variant, size, padding, margin, width, b
 
     return (
         <motion.div
-            ref={(ref: any) => {
-                if (isCanvas) {
-                    connect(ref);
-                } else {
-                    connect(drag(ref));
-                }
-            }}
+            ref={(ref: any) => connect(drag(ref))}
             className={align ? "flex w-full" : "inline-block"}
             style={{
                 width: align ? "100%" : "auto",

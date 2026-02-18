@@ -130,13 +130,7 @@ export const UserImage = ({ src, width, height, borderRadius, padding, margin, b
 
     return (
         <motion.div
-            ref={(ref: any) => {
-                if (isFree) {
-                    connect(ref);
-                } else {
-                    connect(drag(ref));
-                }
-            }}
+            ref={(ref: any) => connect(drag(ref))}
             {...dragProps}
             style={{
                 width: typeof width === 'number' ? `${width}px` : (width || "100%"),

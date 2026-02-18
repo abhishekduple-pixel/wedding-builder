@@ -181,13 +181,7 @@ export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontSty
 
     return (
         <motion.div
-            ref={(ref: any) => {
-                if (isCanvas) {
-                    connect(ref);
-                } else {
-                    connect(drag(ref));
-                }
-            }}
+            ref={(ref: any) => connect(drag(ref))}
             onDoubleClick={(e) => {
                 if (selected) setEditable(true);
             }}
