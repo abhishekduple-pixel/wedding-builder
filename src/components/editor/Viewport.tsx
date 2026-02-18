@@ -57,7 +57,7 @@ export const Viewport = ({ children }: { children: React.ReactNode }) => {
                     <div className="flex-1 overflow-y-scroll overflow-x-hidden p-8 relative flex flex-col items-center craftjs-renderer">
                         <div
                             className={cn(
-                                "bg-white shadow-lg transition-all duration-300 origin-top",
+                                "bg-white shadow-lg transition-all duration-300 origin-top relative editor-canvas-root",
                                 "w-full max-w-5xl",
                                 enabled ? "ring-offset-2 ring-0" : "ring-0"
                             )}

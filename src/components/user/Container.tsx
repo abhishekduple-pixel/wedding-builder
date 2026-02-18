@@ -310,8 +310,9 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
         flexWrap: (isSelfCanvas || layoutMode === "grid") ? undefined : flexWrap,
         gap: isSelfCanvas ? undefined : `${gap}px`,
 
-        minHeight: typeof minHeight === 'number' ? `${minHeight}px` : minHeight,
-        width: typeof width === 'number' ? `${width}px` : width,
+        height: typeof height === "number" ? `${height}px` : height,
+        minHeight: typeof minHeight === "number" ? `${minHeight}px` : minHeight,
+        width: typeof width === "number" ? `${width}px` : width,
         borderRadius: `${borderRadius}px`,
         ...itemStyle, // This overwrites position/top/left if isCanvas is true
       }}
