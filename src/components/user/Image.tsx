@@ -9,12 +9,13 @@ import { Slider } from "../ui/slider";
 import { AnimationSection, getAnimationVariants } from "./AnimationSection";
 import { motion } from "framer-motion";
 import { StylesPanel } from "../editor/properties/StylesPanel";
-import { getSpacing } from "@/lib/utils";
+import { getSpacing, getResponsiveSpacing } from "@/lib/utils";
 import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 import { Switch } from "../ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { UserContainer } from "./Container";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
+import { useAppContext } from "../editor/AppContext";
 
 export const ImageSettings = () => {
     const { actions: { setProp }, src, width, borderRadius, positionType, grayscale, sourceType, fileName, align } = useNode((node) => ({
@@ -121,6 +122,9 @@ export const UserImage = ({ src, width, height, borderRadius, padding, margin, b
         isDragging: !!state.events.dragged
     }));
 
+    const { device } = useAppContext();
+    const isMobile = device === "mobile";
+
     // Access parent node to check if it's a "canvas" container
     const { isCanvas, itemStyle } = useCanvasDrag(top, left);
 
@@ -129,22 +133,29 @@ export const UserImage = ({ src, width, height, borderRadius, padding, margin, b
 
     const variants = getAnimationVariants(animationType, animationDuration, animationDelay);
 
+    // On mobile, force 100% width and constrain properly
+    const responsiveWidth = device === "mobile" 
+        ? "100%" 
+        : (typeof width === 'number' ? `${width}px` : (width || "100%"));
+
     return (
         <motion.div
             ref={(ref: any) => connect(drag(ref))}
             style={{
-                width: typeof width === 'number' ? `${width}px` : (width || "100%"),
+                width: responsiveWidth,
+                maxWidth: device === "mobile" ? "100%" : undefined,
                 height: typeof height === 'number' ? `${height}px` : (height || "auto"),
                 minHeight: typeof minHeight === 'number' ? `${minHeight}px` : (minHeight || "auto"),
-                position: isFree ? "absolute" : "relative",
-                ...itemStyle,
+                position: device === "mobile" ? "relative" : (isFree ? "absolute" : "relative"),
+                ...(device === "mobile" ? { top: 0, left: 0 } : itemStyle),
                 zIndex: selected ? 100 : 1,
                 display: "flex",
                 alignSelf: align === "center" ? "center" : align === "right" ? "flex-end" : "flex-start",
-                padding: getSpacing(padding),
-                margin: getSpacing(margin),
+                padding: getSpacing(device === "mobile" ? getResponsiveSpacing(padding, device) : padding),
+                margin: getSpacing(device === "mobile" ? getResponsiveSpacing(margin, device) : margin),
                 backgroundColor: background,
                 borderRadius: `${borderRadius}px`,
+                overflow: "hidden", // Prevent image overflow
             }}
             initial="initial"
             animate="animate"
@@ -154,35 +165,39 @@ export const UserImage = ({ src, width, height, borderRadius, padding, margin, b
                 src={src}
                 style={{
                     width: "100%",
+                    maxWidth: "100%",
                     height: "auto",
                     display: "block",
                     borderRadius: `${borderRadius}px`,
                     filter: grayscale ? "grayscale(100%)" : "none",
+                    objectFit: device === "mobile" ? "cover" : "contain", // Use cover on mobile for better display
                 }}
                 alt="User Image"
             />
 
-            {/* Overlay Container for Drop Zone */}
-            <div style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                pointerEvents: isDragging ? "auto" : "none"
-            }}>
-                <Element
-                    id="image_overlay"
-                    is={UserContainer}
-                    canvas
-                    layoutMode="canvas"
-                    padding={20}
-                    background="transparent"
-                    width="100%"
-                    minHeight="100%"
-                    disableVisuals
-                />
-            </div>
+            {/* Overlay Container for Drop Zone - Hidden on mobile to prevent white lines */}
+            {!isMobile && (
+                <div style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    pointerEvents: isDragging ? "auto" : "none"
+                }}>
+                    <Element
+                        id="image_overlay"
+                        is={UserContainer}
+                        canvas
+                        layoutMode="canvas"
+                        padding={20}
+                        background="transparent"
+                        width="100%"
+                        minHeight="100%"
+                        disableVisuals
+                    />
+                </div>
+            )}
         </motion.div>
     );
 };
@@ -193,8 +208,8 @@ UserImage.craft = {
         src: "https://placehold.co/600x400",
         sourceType: "url",
         fileName: "",
-        width: "100%",
-        height: "auto",
+        width: "400px",
+        height: "300px",
         padding: 0,
         margin: 0,
         background: "transparent",

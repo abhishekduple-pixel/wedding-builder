@@ -8,11 +8,12 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { AlignLeft, AlignCenter, AlignRight, LayoutTemplate, Rows, Columns } from "lucide-react";
-import { cn, getSpacing } from "@/lib/utils";
+import { cn, getSpacing, getResponsiveSpacing } from "@/lib/utils";
 import { AnimationSection, getAnimationVariants } from "./AnimationSection";
 import { motion } from "framer-motion";
 import { SpacingControl } from "../editor/properties/SpacingControl";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
+import { useAppContext } from "../editor/AppContext";
 
 export const ContainerSettings = () => {
   const { actions: { setProp }, background, padding, margin, flexDirection, alignItems, justifyContent, flexWrap, gap, borderRadius, backgroundImage, height, minHeight, width, layoutMode, gridColumns } = useNode((node) => ({
@@ -196,6 +197,8 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
     enabled: state.options.enabled,
   }));
 
+  const { device } = useAppContext();
+
   React.useEffect(() => {
     if (disableVisuals && selected && node?.data?.parent) {
       editorActions.selectNode(node.data.parent);
@@ -249,9 +252,10 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
         backgroundSize: backgroundImage ? "cover" : backgroundPatternSize,
         backgroundPosition: backgroundImage ? "center center" : backgroundPatternPosition,
         backgroundRepeat: backgroundImage ? "no-repeat" : undefined,
-        padding: isSelfCanvas ? 0 : getSpacing(padding),
-        margin: getSpacing(margin),
-        overflow: isSelfCanvas ? "hidden" : "visible", // Strictly clip to page boundary
+        padding: isSelfCanvas ? 0 : getSpacing(device === "mobile" ? getResponsiveSpacing(padding, device) : padding),
+        margin: (isSelfCanvas && device === "mobile") ? 0 : getSpacing(device === "mobile" ? getResponsiveSpacing(margin, device) : margin),
+        overflow: device === "mobile" ? "hidden" : (isSelfCanvas ? "hidden" : "visible"), // Always clip on mobile to prevent overflow
+        maxWidth: device === "mobile" ? "100%" : undefined,
 
         // Layout Config
         display: isSelfCanvas ? "block" : (layoutMode === "grid" ? "grid" : "flex"),
@@ -265,25 +269,33 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
         gridTemplateColumns: layoutMode === "grid" ? `repeat(${gridColumns || 1}, 1fr)` : undefined,
 
         // Flex Props (Only apply if NOT canvas AND NOT grid)
-        flexDirection: (isSelfCanvas || layoutMode === "grid") ? undefined : flexDirection,
+        // On mobile, force column direction for row layouts
+        flexDirection: (isSelfCanvas || layoutMode === "grid") 
+          ? undefined 
+          : (device === "mobile" && flexDirection === "row" ? "column" : flexDirection),
         alignItems: (isSelfCanvas) ? undefined : alignItems, // Grid uses alignItems too
         justifyContent: (isSelfCanvas || layoutMode === "grid") ? undefined : justifyContent,
         flexWrap: (isSelfCanvas || layoutMode === "grid") ? undefined : flexWrap,
-        gap: isSelfCanvas ? undefined : `${gap}px`,
+        gap: isSelfCanvas ? undefined : `${device === "mobile" ? Math.max(gap * 0.5, 8) : gap}px`,
 
         height: typeof height === "number" ? `${height}px` : height,
         minHeight: typeof minHeight === "number" ? `${minHeight}px` : minHeight,
-        width: typeof width === "number" ? `${width}px` : width,
+        width: device === "mobile" 
+          ? "100%" 
+          : (typeof width === "number" ? `${width}px` : width),
+        maxWidth: device === "mobile" ? "100%" : undefined,
         borderRadius: `${borderRadius}px`,
         ...itemStyle, // This overwrites position/top/left if isCanvas is true
       }}
       className={cn(
         "min-h-[50] transition-all cursor-move",
-        selected
-          ? "border-2 border-blue-500 border-dashed shadow-sm"
-          : showVisualIndicators
-            ? "border border-blue-200 border-dashed hover:border-blue-400 hover:shadow-sm"
-            : "border border-transparent hover:border-gray-300 hover:border-dashed"
+        device === "mobile" && !enabled
+          ? "border-0" // No borders on mobile in preview mode
+          : selected
+            ? "border-2 border-blue-500 border-dashed shadow-sm"
+            : showVisualIndicators
+              ? "border border-blue-200 border-dashed hover:border-blue-400 hover:shadow-sm"
+              : "border border-transparent hover:border-gray-300 hover:border-dashed"
       )}
       initial="initial"
       animate="animate"

@@ -6,16 +6,12 @@ import { ROOT_NODE } from "@craftjs/utils";
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Move, ArrowUp, Trash2 } from "lucide-react";
-import { useAppContext } from "./AppContext";
 
 export const RenderNode = ({ render }: { render: React.ReactNode }) => {
     const { id } = useNode();
-    const { actions, query, isActive, enabled } = useEditor((state, query) => ({
+    const { actions, query, isActive } = useEditor((state, query) => ({
         isActive: query.getEvent("selected").contains(id),
-        enabled: state.options.enabled,
     }));
-    const { device, preview } = useAppContext();
-    const isMobile = device === "mobile";
 
     const {
         isHovered,
@@ -253,12 +249,9 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         }
     }, [dom, isActive, isHovered]);
 
-    // Hide editor UI in mobile preview mode or when preview is enabled
-    const showEditorUI = !preview && enabled;
-
     return (
         <>
-            {(isActive || isHovered) && showEditorUI
+            {isActive || isHovered
                 ? createPortal(
                     <div
                         className="absolute z-10 pointer-events-none"

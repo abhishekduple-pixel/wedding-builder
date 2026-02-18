@@ -10,10 +10,11 @@ import { Slider } from "../ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 import { StylesPanel } from "../editor/properties/StylesPanel";
-import { getSpacing } from "@/lib/utils";
+import { getSpacing, getResponsiveSpacing, getResponsiveFontSize } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { getAnimationVariants } from "./AnimationSection";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
+import { useAppContext } from "../editor/AppContext";
 
 export const ButtonSettings = () => {
     const { actions: { setProp }, text, url, variant, size, color, borderColor, align, fontSize } = useNode((node) => ({
@@ -144,9 +145,17 @@ export const UserButton = ({ text, url, variant, size, padding, margin, width, b
         enabled: state.options.enabled,
     }));
 
+    const { device } = useAppContext();
+
     const { itemStyle } = useCanvasDrag(top, left);
 
     const variants = getAnimationVariants(animationType, animationDuration, animationDelay);
+
+    // Responsive adjustments for mobile
+    const responsiveWidth = device === "mobile" && width && typeof width === "string" && width.includes("px")
+        ? "100%"
+        : width;
+    const responsiveFontSize = getResponsiveFontSize(fontSize || 16, device);
 
     const handleClick = () => {
         if (enabled) return;
@@ -155,16 +164,22 @@ export const UserButton = ({ text, url, variant, size, padding, margin, width, b
         }
     };
 
+    // On mobile, buttons should be full width unless explicitly set otherwise
+    const buttonWidth = device === "mobile" 
+        ? (align ? "100%" : (width || "100%"))
+        : responsiveWidth;
+
     return (
         <motion.div
             ref={(ref: any) => connect(drag(ref))}
-            className={align ? "flex w-full" : "inline-block"}
+            className={device === "mobile" || align ? "flex w-full" : "inline-block"}
             style={{
-                width: align ? "100%" : "auto",
-                margin: getSpacing(margin),
+                width: device === "mobile" || align ? "100%" : "auto",
+                margin: getSpacing(device === "mobile" ? getResponsiveSpacing(margin, device) : margin),
                 justifyContent: align === "center" ? "center" : align === "right" ? "flex-end" : "flex-start",
-                ...itemStyle,
+                ...(device === "mobile" ? { position: "relative", top: 0, left: 0 } : itemStyle),
                 zIndex: selected ? 100 : 1,
+                maxWidth: device === "mobile" ? "100%" : undefined,
             }}
             initial="initial"
             animate="animate"
@@ -176,14 +191,15 @@ export const UserButton = ({ text, url, variant, size, padding, margin, width, b
                 className={selected ? "ring-2 ring-blue-400 ring-offset-2" : ""}
                 onClick={handleClick}
                 style={{
-                    width: width,
+                    width: buttonWidth,
+                    maxWidth: device === "mobile" ? "100%" : undefined,
                     backgroundColor: background === "transparent" ? undefined : background,
                     borderRadius: borderRadius ? `${borderRadius}px` : undefined,
                     color: color || undefined,
                     borderColor: borderColor || undefined,
-                    padding: padding ? getSpacing(padding) : undefined,
+                    padding: padding ? getSpacing(device === "mobile" ? getResponsiveSpacing(padding, device) : padding) : undefined,
                     height: "auto", // Allow height to adjust with padding
-                    fontSize: fontSize ? `${fontSize}px` : undefined,
+                    fontSize: responsiveFontSize ? `${responsiveFontSize}px` : undefined,
                 }}
             >
                 {text}

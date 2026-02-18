@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 import { StylesPanel } from "../editor/properties/StylesPanel";
 import { getSpacing, cn } from "@/lib/utils";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
+import { useAppContext } from "../editor/AppContext";
 
 export const VideoSettings = () => {
     const { actions: { setProp }, url, width, height, padding, margin, background, borderRadius, minHeight, autoplay, loop, controls, animationType, animationDuration, animationDelay, align, top, left } = useNode((node) => ({
@@ -151,7 +152,14 @@ export const UserVideo = ({ url, width, height, padding, margin, background, bor
         enabled: state.options.enabled
     }));
 
+    const { device } = useAppContext();
+
     const { itemStyle } = useCanvasDrag(top, left);
+
+    // Adjust width for mobile - ensure it doesn't exceed container
+    const responsiveWidth = device === "mobile" && width && typeof width === "string" && width.includes("px")
+        ? "100%"
+        : (typeof width === 'number' ? `${width}px` : (width || "100%"));
 
     const getEmbedUrl = (url: string) => {
         if (!url) return "";
@@ -203,7 +211,8 @@ export const UserVideo = ({ url, width, height, padding, margin, background, bor
         <motion.div
             ref={(ref: any) => connect(drag(ref))}
             style={{
-                width: typeof width === 'number' ? `${width}px` : (width || "100%"),
+                width: responsiveWidth,
+                maxWidth: device === "mobile" ? "100%" : undefined,
                 height: typeof height === 'number' ? `${height}px` : (height || "auto"),
                 minHeight: typeof minHeight === 'number' ? `${minHeight}px` : (minHeight || "auto"),
                 padding: getSpacing(padding),
@@ -213,13 +222,18 @@ export const UserVideo = ({ url, width, height, padding, margin, background, bor
                 display: "flex",
                 justifyContent: getJustifyContent(),
                 alignSelf: getJustifyContent(),
-                ...itemStyle,
+                ...(device === "mobile" ? { position: "relative", top: 0, left: 0 } : itemStyle),
             }}
             initial="initial"
             animate="animate"
             variants={variants as any}
         >
-            <div style={{ width: "100%", height: "100%", aspectRatio: "16/9", maxWidth: width === "100%" ? "100%" : width }}>
+            <div style={{ 
+                width: "100%", 
+                height: "100%", 
+                aspectRatio: "16/9", 
+                maxWidth: device === "mobile" ? "100%" : (responsiveWidth === "100%" ? "100%" : responsiveWidth)
+            }}>
                 {isVideoFile ? (
                     <video
                         src={url}
@@ -252,8 +266,8 @@ UserVideo.craft = {
     displayName: "Video",
     props: {
         url: "",
-        width: "100%",
-        height: "auto",
+        width: "400px",
+        height: "300px",
         padding: 0,
         margin: 0,
         background: "transparent",

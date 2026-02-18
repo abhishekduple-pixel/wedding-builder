@@ -21,6 +21,7 @@ import { UserEmoji } from "../user/Emoji";
 import { UserModernHero } from "../user/sections/ModernHero";
 import { UserFooter } from "../user/sections/Footer";
 import { UserPrivateEventPopup } from "../user/sections/PrivateEventPopup";
+import { UserNavbar } from "../user/Navbar";
 
 export const craftResolver = {
     UserText,
@@ -41,6 +42,7 @@ export const craftResolver = {
     UserModernHero,
     UserFooter,
     UserPrivateEventPopup,
+    UserNavbar,
 };
 
 export const EditorProvider = ({ children }: { children: React.ReactNode }) => {

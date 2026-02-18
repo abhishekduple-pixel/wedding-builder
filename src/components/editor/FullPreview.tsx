@@ -9,6 +9,7 @@ import { Eye, X, Monitor, Smartphone } from "lucide-react";
 import { Editor, Frame, Element, useEditor } from "@craftjs/core";
 import { useAppContext } from "./AppContext";
 import { craftResolver } from "./EditorProvider";
+import { cn } from "@/lib/utils";
 
 const SECTIONS = ["Home", "Story", "Schedule", "Gallery", "RSVP", "Travel", "Registry"];
 
@@ -104,9 +105,8 @@ export const FullPreview = () => {
     const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
 
     const isMobile = previewDevice === "mobile";
-    const DESIGN_WIDTH = 1024;
     const MOBILE_WIDTH = 375;
-    const scale = isMobile ? MOBILE_WIDTH / DESIGN_WIDTH : 1;
+    const DESKTOP_MAX_WIDTH = 1024;
 
     // When opening, we should ensure the *current* section is saved to the 'sections' map
     // so it appears up-to-date in the preview.
@@ -148,11 +148,17 @@ export const FullPreview = () => {
                 </div>
                 <div className="flex-1 overflow-y-auto bg-gray-100 p-8 flex justify-center">
                     <div
-                        className="transition-all duration-300 bg-white shadow-2xl origin-top w-full max-w-5xl"
+                        className={cn(
+                            "transition-all duration-300 bg-white shadow-2xl origin-top",
+                            isMobile ? "w-full" : "w-full max-w-5xl"
+                        )}
                         style={isMobile ? {
-                            width: `${DESIGN_WIDTH}px`,
-                            transform: `scale(${scale})`,
-                        } : undefined}
+                            maxWidth: `${MOBILE_WIDTH}px`,
+                            width: `${MOBILE_WIDTH}px`,
+                        } : {
+                            maxWidth: `${DESKTOP_MAX_WIDTH}px`,
+                        }}
+                        data-device={previewDevice}
                     >
                         {SECTIONS
                             .filter(section => {

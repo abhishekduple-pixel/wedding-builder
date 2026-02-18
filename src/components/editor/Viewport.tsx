@@ -24,9 +24,8 @@ export const Viewport = ({ children }: { children: React.ReactNode }) => {
     }));
 
     const isMobile = device === "mobile";
-    const DESIGN_WIDTH = 1024;
     const MOBILE_WIDTH = 375;
-    const scale = isMobile ? MOBILE_WIDTH / DESIGN_WIDTH : 1;
+    const DESKTOP_MAX_WIDTH = 1024;
 
     const [pages, setPages] = useState<PageMeta[]>([]);
     const [currentPageId, setCurrentPageId] = useState<string | null>(null);
@@ -55,17 +54,29 @@ export const Viewport = ({ children }: { children: React.ReactNode }) => {
                         <Toolbox />
                     </div>
 
-                    <div className="flex-1 overflow-y-scroll overflow-x-hidden p-8 relative flex flex-col items-center craftjs-renderer">
+                    <div className={cn(
+                        "flex-1 overflow-y-scroll overflow-x-hidden relative flex flex-col craftjs-renderer",
+                        isMobile ? "p-0 justify-center" : "p-8 items-center"
+                    )}>
                         <div
                             className={cn(
                                 "bg-white shadow-lg transition-all duration-300 origin-top relative editor-canvas-root",
-                                "w-full max-w-5xl",
+                                isMobile ? "w-full overflow-x-hidden" : "w-full max-w-5xl",
                                 enabled ? "ring-offset-2 ring-0" : "ring-0"
                             )}
                             style={isMobile ? {
-                                width: `${DESIGN_WIDTH}px`,
-                                transform: `scale(${scale})`,
-                            } : undefined}
+                                maxWidth: `${MOBILE_WIDTH}px`,
+                                width: `${MOBILE_WIDTH}px`,
+                                minWidth: `${MOBILE_WIDTH}px`,
+                                overflowX: "hidden",
+                                overflowY: "auto",
+                                marginLeft: "auto",
+                                marginRight: "auto",
+                                padding: 0,
+                            } : {
+                                maxWidth: `${DESKTOP_MAX_WIDTH}px`,
+                            }}
+                            data-device={device}
                             onClick={(e) => {
                                 if (e.target === e.currentTarget) {
                                     if (enabled) {
@@ -77,7 +88,11 @@ export const Viewport = ({ children }: { children: React.ReactNode }) => {
                             {children}
                         </div>
 
-                        <div className="mt-4 w-full max-w-5xl flex flex-col items-center gap-3 pb-8">
+                        <div className={cn(
+                            "w-full flex flex-col gap-3",
+                            isMobile ? "mt-4 px-4 items-center" : "mt-4 pb-8 items-center max-w-5xl"
+                        )}
+                            style={isMobile ? { maxWidth: `${MOBILE_WIDTH}px`, marginLeft: "auto", marginRight: "auto" } : undefined}>
                             <button
                                 type="button"
                                 className="w-full border border-gray-200 rounded-lg py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"

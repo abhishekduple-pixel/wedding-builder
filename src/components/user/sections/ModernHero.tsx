@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { StylesPanel } from "@/components/editor/properties/StylesPanel";
+import { useAppContext } from "../../editor/AppContext";
 
 export const ModernHeroSettings = () => {
     const { actions: { setProp }, imageLeft, imageCenter, imageRight, grayscaleSides, overlayOpacity } = useNode((node) => ({
@@ -102,6 +103,9 @@ export const UserModernHero = ({
         selected: state.events.selected,
     }));
 
+    const { device } = useAppContext();
+    const isMobile = device === "mobile";
+
     const sideStyle = {
         backgroundSize: "cover",
         backgroundPosition: "center",
@@ -119,14 +123,16 @@ export const UserModernHero = ({
     return (
         <div 
             ref={(ref: any) => connect(drag(ref))}
-            className={`w-full flex flex-col md:flex-row ${selected ? "ring-2 ring-blue-500" : ""}`}
+            className={`w-full flex ${isMobile ? "flex-col" : "flex-row"} ${selected ? "ring-2 ring-blue-500" : ""}`}
             style={{ padding: `${padding}px`, margin: `${margin}px` }}
         >
-            {/* Left Column */}
-            <div className="flex-1 hidden md:block" style={{ ...sideStyle, backgroundImage: `url(${imageLeft})` }} />
+            {/* Left Column - Hidden on mobile */}
+            {!isMobile && (
+                <div className="flex-1" style={{ ...sideStyle, backgroundImage: `url(${imageLeft})` }} />
+            )}
 
             {/* Center Column */}
-            <div className="flex-[1.5] flex flex-col items-center justify-center text-center p-8 relative" style={{ ...centerStyle, backgroundImage: `url(${imageCenter})` }}>
+            <div className={`${isMobile ? "w-full" : "flex-[1.5]"} flex flex-col items-center justify-center text-center ${isMobile ? "p-4" : "p-8"} relative`} style={{ ...centerStyle, backgroundImage: `url(${imageCenter})`, minHeight: isMobile ? "400px" : "600px" }}>
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-black" style={{ opacity: overlayOpacity }} />
                 
@@ -161,8 +167,10 @@ export const UserModernHero = ({
                 </div>
             </div>
 
-            {/* Right Column */}
-            <div className="flex-1 hidden md:block" style={{ ...sideStyle, backgroundImage: `url(${imageRight})` }} />
+            {/* Right Column - Hidden on mobile */}
+            {!isMobile && (
+                <div className="flex-1" style={{ ...sideStyle, backgroundImage: `url(${imageRight})` }} />
+            )}
         </div>
     );
 };

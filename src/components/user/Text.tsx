@@ -12,8 +12,9 @@ import { AlignLeft, AlignCenter, AlignRight, Bold, Italic, Underline, Strikethro
 import { AnimationSection, getAnimationVariants } from "./AnimationSection";
 import { motion } from "framer-motion";
 import { StylesPanel } from "../editor/properties/StylesPanel";
-import { getSpacing } from "@/lib/utils";
+import { getSpacing, getResponsiveFontSize, getResponsiveSpacing } from "@/lib/utils";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
+import { useAppContext } from "../editor/AppContext";
 
     export const TextSettings = () => {
     const { actions: { setProp }, fontSize, color, textAlign, fontWeight, fontStyle, textDecoration, text, fontFamily, top, left } = useNode((node) => ({
@@ -167,6 +168,8 @@ export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontSty
         selected: state.events.selected,
     }));
 
+    const { device } = useAppContext();
+
     // Access parent node to check if it's a "canvas" container
     const { itemStyle } = useCanvasDrag(top, left);
 
@@ -179,6 +182,14 @@ export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontSty
 
     const variants = getAnimationVariants(animationType, animationDuration, animationDelay);
 
+    // Get responsive font size based on device
+    const responsiveFontSize = getResponsiveFontSize(fontSize || 16, device);
+    
+    // Adjust width for mobile - ensure it doesn't exceed container
+    const responsiveWidth = device === "mobile" && width && typeof width === "string" && width.includes("px") 
+        ? "100%" 
+        : width;
+
     return (
         <motion.div
             ref={(ref: any) => connect(drag(ref))}
@@ -190,19 +201,28 @@ export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontSty
             variants={variants as any}
 
             style={{
-                width,
+                width: device === "mobile" ? "100%" : responsiveWidth,
                 minHeight,
-                padding: getSpacing(padding),
-                margin: getSpacing(margin),
+                padding: getSpacing(device === "mobile" ? getResponsiveSpacing(padding, device) : padding),
+                margin: getSpacing(device === "mobile" ? getResponsiveSpacing(margin, device) : margin),
                 backgroundColor: background,
                 borderRadius: `${borderRadius}px`,
-                ...itemStyle,
-                zIndex: selected ? 100 : 1, // Bring to front when selected/dragged
+                ...(device === "mobile" 
+                    ? { position: "relative", top: 0, left: 0, width: "100%" } 
+                    : itemStyle),
+                zIndex: selected ? 100 : (device === "mobile" ? 10 : 1),
+                maxWidth: device === "mobile" ? "100%" : undefined,
+                overflow: device === "mobile" ? "hidden" : undefined,
+                overflowWrap: "break-word",
+                wordWrap: "break-word",
+                wordBreak: "break-word",
 
                 // For fit-content width, we must align the block itself
-                alignSelf: width === "fit-content" || width === "auto"
-                    ? (textAlign === "center" ? "center" : textAlign === "right" ? "flex-end" : "flex-start")
-                    : undefined,
+                alignSelf: device === "mobile" 
+                    ? undefined 
+                    : ((responsiveWidth === "fit-content" || responsiveWidth === "auto")
+                        ? (textAlign === "center" ? "center" : textAlign === "right" ? "flex-end" : "flex-start")
+                        : undefined),
             }}
         >
             <ContentEditable
@@ -213,15 +233,19 @@ export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontSty
                 }
                 tagName="div"
                 style={{
-                    fontSize: `${fontSize}px`,
+                    fontSize: `${responsiveFontSize}px`,
                     color,
-                    textAlign,
+                    textAlign: textAlign, // Keep original alignment
                     fontWeight,
                     fontStyle,
                     textDecoration,
                     fontFamily,
                     minHeight: "1em", // Ensure it doesn't collapse
-                    width: "100%"
+                    width: "100%",
+                    maxWidth: "100%",
+                    overflowWrap: "break-word",
+                    wordWrap: "break-word",
+                    wordBreak: "break-word",
                 }}
                 className={`outline-none focus:outline-blue-400 focus:outline-2 focus:outline-dashed ${!editable ? "cursor-move" : "cursor-text"}`}
             />

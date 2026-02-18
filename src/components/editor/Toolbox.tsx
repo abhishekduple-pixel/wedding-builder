@@ -26,6 +26,7 @@ import { UserTable } from "../user/Table";
 import { UserEmoji } from "../user/Emoji";
 import { UserModernHero } from "../user/sections/ModernHero";
 import { UserFooter } from "../user/sections/Footer";
+import { UserNavbar } from "../user/Navbar";
 import { UserPrivateEventPopup } from "../user/sections/PrivateEventPopup";
 import { MousePointerClick, TextCursorInput, ToggleRight, SlidersHorizontal, Tag, RectangleHorizontal, Sparkles, PieChart, Table as TableIcon, Smile, LayoutTemplate, PanelBottom, Lock } from "lucide-react";
 
@@ -356,6 +357,14 @@ export const Toolbox = () => {
                                                 >
                                                     <LayoutTemplate className="h-6 w-6" />
                                                     <span className="text-xs">Timeline</span>
+                                                </Button>
+                                                <Button
+                                                    ref={(ref: any) => connectors.create(ref, <UserNavbar />)}
+                                                    variant="outline"
+                                                    className="flex flex-col gap-2 h-20 hover:bg-muted"
+                                                >
+                                                    <PanelBottom className="w-6 h-6" />
+                                                    <span className="text-xs">Navbar</span>
                                                 </Button>
                                                 <Button
                                                     ref={(ref: any) => connectors.create(ref, <UserModernHero />)}

@@ -123,3 +123,321 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Responsive styles for mobile device mode */
+.editor-canvas-root[data-device="mobile"] {
+  /* Ensure proper mobile viewport */
+  min-width: 375px !important;
+  max-width: 375px !important;
+  width: 375px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  position: relative !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  transform: none !important;
+}
+
+/* Ensure all content inside mobile container is constrained and aligned */
+.editor-canvas-root[data-device="mobile"] > * {
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  left: 0 !important;
+  right: auto !important;
+  transform: none !important;
+}
+
+/* Ensure root container content starts from absolute left edge */
+.editor-canvas-root[data-device="mobile"] > *:first-child {
+  margin: 0 !important;
+  padding: 0 !important;
+  left: 0 !important;
+  right: auto !important;
+  transform: translateX(0) !important;
+  position: relative !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Ensure Frame and root Element containers have no offset */
+.editor-canvas-root[data-device="mobile"] > div:first-child,
+.editor-canvas-root[data-device="mobile"] > div:first-child > div,
+.editor-canvas-root[data-device="mobile"] > div:first-child > div > div {
+  margin: 0 !important;
+  padding: 0 !important;
+  left: 0 !important;
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  transform: none !important;
+  position: relative !important;
+}
+
+/* Override any Craft.js Frame styles */
+.editor-canvas-root[data-device="mobile"] [class*="craftjs"] {
+  margin: 0 !important;
+  padding: 0 !important;
+  left: 0 !important;
+}
+
+/* Force all elements to respect mobile container */
+.editor-canvas-root[data-device="mobile"],
+.editor-canvas-root[data-device="mobile"] * {
+  box-sizing: border-box !important;
+}
+
+/* Prevent horizontal overflow */
+.editor-canvas-root[data-device="mobile"] * {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+/* Responsive images and media for mobile */
+.editor-canvas-root[data-device="mobile"] img {
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  object-fit: cover !important;
+  display: block !important;
+  object-position: center !important;
+}
+
+.editor-canvas-root[data-device="mobile"] video,
+.editor-canvas-root[data-device="mobile"] iframe,
+.editor-canvas-root[data-device="mobile"] embed,
+.editor-canvas-root[data-device="mobile"] object {
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* Force all containers to not exceed mobile width */
+.editor-canvas-root[data-device="mobile"] > * {
+  max-width: 100% !important;
+}
+
+/* Constrain all direct children and nested elements */
+.editor-canvas-root[data-device="mobile"] > * > * {
+  max-width: 100% !important;
+}
+
+/* Override fixed pixel widths on mobile - force all to respect container */
+.editor-canvas-root[data-device="mobile"] [style*="width"] {
+  max-width: 100% !important;
+}
+
+/* Force image containers to be full width on mobile */
+.editor-canvas-root[data-device="mobile"] [style*="width"] img {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Responsive font sizes - scale down large fonts */
+.editor-canvas-root[data-device="mobile"] [style*="font-size"] {
+  font-size: clamp(12px, 4vw, 24px) !important;
+}
+
+/* Reduce excessive padding on mobile - but NOT for root container */
+.editor-canvas-root[data-device="mobile"] > *:not(:first-child) [style*="padding"],
+.editor-canvas-root[data-device="mobile"] > * > * [style*="padding"] {
+  padding-left: clamp(8px, 2vw, 16px) !important;
+  padding-right: clamp(8px, 2vw, 16px) !important;
+}
+
+/* Reduce margins on mobile - but NOT for root container */
+.editor-canvas-root[data-device="mobile"] > *:not(:first-child) [style*="margin"],
+.editor-canvas-root[data-device="mobile"] > * > * [style*="margin"] {
+  margin-left: clamp(4px, 1vw, 12px) !important;
+  margin-right: clamp(4px, 1vw, 12px) !important;
+}
+
+/* Ensure text wraps properly and doesn't overflow */
+.editor-canvas-root[data-device="mobile"] p,
+.editor-canvas-root[data-device="mobile"] div,
+.editor-canvas-root[data-device="mobile"] span,
+.editor-canvas-root[data-device="mobile"] h1,
+.editor-canvas-root[data-device="mobile"] h2,
+.editor-canvas-root[data-device="mobile"] h3,
+.editor-canvas-root[data-device="mobile"] h4,
+.editor-canvas-root[data-device="mobile"] h5,
+.editor-canvas-root[data-device="mobile"] h6 {
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Force text content to stay within bounds */
+.editor-canvas-root[data-device="mobile"] [contenteditable],
+.editor-canvas-root[data-device="mobile"] [contenteditable="true"] {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  word-break: break-word !important;
+  white-space: normal !important;
+}
+
+/* Force all elements to respect mobile bounds */
+.editor-canvas-root[data-device="mobile"] * {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+/* Reset absolute positioning on mobile to prevent off-screen elements */
+.editor-canvas-root[data-device="mobile"] [style*="position: absolute"],
+.editor-canvas-root[data-device="mobile"] [style*="position:absolute"] {
+  position: relative !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Ensure proper text display on mobile */
+.editor-canvas-root[data-device="mobile"] [style*="text-align"] {
+  /* Keep original alignment but ensure it doesn't cause overflow */
+  max-width: 100% !important;
+}
+
+/* Ensure text overlaid on images is visible and properly positioned */
+.editor-canvas-root[data-device="mobile"] [style*="position: relative"],
+.editor-canvas-root[data-device="mobile"] [style*="position:relative"] {
+  z-index: 1 !important;
+}
+
+.editor-canvas-root[data-device="mobile"] [style*="position: absolute"],
+.editor-canvas-root[data-device="mobile"] [style*="position:absolute"] {
+  max-width: 100% !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+}
+
+/* Hide editor selection borders and handles on mobile */
+.editor-canvas-root[data-device="mobile"] .component-selected {
+  border: none !important;
+  outline: none !important;
+}
+
+/* Hide resize handles and selection UI on mobile */
+.editor-canvas-root[data-device="mobile"] [class*="border-blue"],
+.editor-canvas-root[data-device="mobile"] [class*="bg-white"][class*="border"] {
+  display: none !important;
+}
+
+/* Hide all editor UI elements on mobile */
+.editor-canvas-root[data-device="mobile"] [class*="absolute"][class*="z-10"] {
+  display: none !important;
+}
+
+/* Remove any white borders or lines that might appear */
+.editor-canvas-root[data-device="mobile"] [style*="border"],
+.editor-canvas-root[data-device="mobile"] [class*="border"]:not([class*="border-transparent"]) {
+  border: none !important;
+}
+
+/* Ensure no white backgrounds appear over images */
+.editor-canvas-root[data-device="mobile"] [style*="background: white"],
+.editor-canvas-root[data-device="mobile"] [style*="background:white"],
+.editor-canvas-root[data-device="mobile"] [style*="background-color: white"],
+.editor-canvas-root[data-device="mobile"] [style*="background-color:white"] {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Make buttons responsive */
+.editor-canvas-root[data-device="mobile"] button,
+.editor-canvas-root[data-device="mobile"] [role="button"] {
+  width: auto !important;
+  max-width: 100% !important;
+  padding: clamp(8px, 2vw, 16px) clamp(12px, 3vw, 24px) !important;
+  font-size: clamp(14px, 3.5vw, 16px) !important;
+}
+
+/* Responsive inputs and form elements */
+.editor-canvas-root[data-device="mobile"] input,
+.editor-canvas-root[data-device="mobile"] textarea,
+.editor-canvas-root[data-device="mobile"] select {
+  width: 100% !important;
+  max-width: 100% !important;
+  font-size: clamp(14px, 3.5vw, 16px) !important;
+  padding: clamp(8px, 2vw, 12px) !important;
+}
+
+/* Stack flex items vertically on mobile when in row direction - but only for containers */
+.editor-canvas-root[data-device="mobile"] [style*="flex-direction: row"][style*="display: flex"] {
+  flex-direction: column !important;
+}
+
+/* Adjust gap spacing for mobile */
+.editor-canvas-root[data-device="mobile"] [style*="gap"] {
+  gap: clamp(8px, 2vw, 16px) !important;
+}
+
+/* Ensure absolute positioned elements don't go off-screen */
+.editor-canvas-root[data-device="mobile"] [style*="position: absolute"] {
+  max-width: calc(100% - 16px) !important;
+  left: clamp(0px, 0vw, 8px) !important;
+  right: clamp(0px, 0vw, 8px) !important;
+}
+
+/* Responsive tables */
+.editor-canvas-root[data-device="mobile"] table {
+  width: 100% !important;
+  font-size: clamp(12px, 3vw, 14px) !important;
+  display: block !important;
+  overflow-x: auto !important;
+}
+
+/* Responsive charts and complex components */
+.editor-canvas-root[data-device="mobile"] canvas,
+.editor-canvas-root[data-device="mobile"] svg {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Prevent any element from exceeding container width */
+.editor-canvas-root[data-device="mobile"] * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure image wrappers don't overflow */
+.editor-canvas-root[data-device="mobile"] [style*="width"] {
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+/* Force all flex containers to respect width */
+.editor-canvas-root[data-device="mobile"] [style*="display: flex"],
+.editor-canvas-root[data-device="mobile"] [style*="display:flex"] {
+  max-width: 100% !important;
+  width: 100% !important;
+  flex-wrap: wrap !important;
+}
+
+/* Ensure buttons are properly sized on mobile */
+.editor-canvas-root[data-device="mobile"] button:not([class*="ring"]) {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure proper spacing between sections on mobile */
+.editor-canvas-root[data-device="mobile"] > * + * {
+  margin-top: clamp(16px, 4vw, 32px) !important;
+}
