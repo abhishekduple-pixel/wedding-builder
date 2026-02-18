@@ -132,6 +132,8 @@ export const UserPopup = ({ triggerText, isOpen, openOnLoad, hideTrigger, width 
             // Small delay to ensure smooth entrance
             const timer = setTimeout(() => setInternalOpen(true), 500);
             return () => clearTimeout(timer);
+        } else if (enabled) {
+            setInternalOpen(false);
         }
     }, [enabled, openOnLoad]);
 

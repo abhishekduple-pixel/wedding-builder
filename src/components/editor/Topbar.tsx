@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, showToast } from "@/lib/utils";
 
 interface Template {
     id: string;
@@ -98,20 +98,6 @@ export const Topbar = () => {
         load();
     }, []);
 
-    const showToast = (message: string, color: string = "#4ade80") => {
-        const toast = document.createElement("div");
-        toast.innerText = message;
-        toast.style.position = "fixed";
-        toast.style.bottom = "20px";
-        toast.style.right = "20px";
-        toast.style.padding = "10px 20px";
-        toast.style.background = color;
-        toast.style.color = "white";
-        toast.style.borderRadius = "5px";
-        toast.style.zIndex = "1000";
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 2000);
-    };
 
     const handleSave = async () => {
         if (currentTemplateId) {
@@ -334,7 +320,7 @@ export const Topbar = () => {
         };
     }, []);
 
-    const handleNewProject = () => {
+    const handleNewProject = async () => {
         if (confirm("Are you sure? This will clear your current editor.")) {
             actions.clearEvents();
             try {
@@ -347,7 +333,7 @@ export const Topbar = () => {
             setCurrentTemplateId(null);
             setCurrentRootId(null);
             setPageIds([]);
-            storage.remove("wedding-current-template-id");
+            await storage.remove("wedding-current-template-id");
             showToast("Started new project");
             broadcastPagesState([], null);
         }

@@ -8,7 +8,7 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { AlignLeft, AlignCenter, AlignRight, LayoutTemplate, Rows, Columns } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getSpacing } from "@/lib/utils";
 import { AnimationSection, getAnimationVariants } from "./AnimationSection";
 import { motion } from "framer-motion";
 import { SpacingControl } from "../editor/properties/SpacingControl";
@@ -205,13 +205,6 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
   const { isCanvas, itemStyle } = useCanvasDrag(top, left);
 
   const variants = getAnimationVariants(animationType, animationDuration, animationDelay);
-
-  // Helper to get spacing string or valid object values
-  const getSpacing = (space: any) => {
-    if (typeof space === "number") return `${space}px`;
-    if (!space) return "0px";
-    return `${space.top}px ${space.right}px ${space.bottom}px ${space.left}px`;
-  };
 
   // Check if container is empty (no children)
   const hasChildren = React.Children.count(children) > 0 || (node?.data?.nodes && node.data.nodes.length > 0);

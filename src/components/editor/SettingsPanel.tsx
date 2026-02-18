@@ -13,7 +13,7 @@ export const SettingsPanel = () => {
         const [currentNodeId] = state.events.selected;
         let selected;
 
-        if (currentNodeId) {
+        if (currentNodeId && state.nodes[currentNodeId]) {
             selected = {
                 id: currentNodeId,
                 name: state.nodes[currentNodeId].data.custom?.displayName || state.nodes[currentNodeId].data.displayName || state.nodes[currentNodeId].data.name,

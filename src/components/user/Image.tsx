@@ -17,7 +17,7 @@ import { UserContainer } from "./Container";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 
 export const ImageSettings = () => {
-    const { actions: { setProp }, src, width, borderRadius, positionType, grayscale, sourceType, fileName } = useNode((node) => ({
+    const { actions: { setProp }, src, width, borderRadius, positionType, grayscale, sourceType, fileName, align } = useNode((node) => ({
         src: node.data.props.src,
         width: node.data.props.width,
         borderRadius: node.data.props.borderRadius,
@@ -25,6 +25,7 @@ export const ImageSettings = () => {
         grayscale: node.data.props.grayscale,
         sourceType: node.data.props.sourceType,
         fileName: node.data.props.fileName,
+        align: node.data.props.align,
     }));
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,7 +100,7 @@ export const ImageSettings = () => {
 
             <div className="space-y-4 pt-4 border-t">
                 <Label>Alignment (Block)</Label>
-                <ToggleGroup type="single" value={useNode((node) => node.data.props.align).align || "left"} onValueChange={(val) => val && setProp((props: any) => props.align = val)}>
+                <ToggleGroup type="single" value={align || "left"} onValueChange={(val) => val && setProp((props: any) => props.align = val)}>
                     <ToggleGroupItem value="left" aria-label="Align Left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
                     <ToggleGroupItem value="center" aria-label="Align Center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
                     <ToggleGroupItem value="right" aria-label="Align Right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>

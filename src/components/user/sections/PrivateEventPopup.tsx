@@ -100,6 +100,8 @@ export const UserPrivateEventPopup = ({ triggerText, isOpen, openOnLoad, hideTri
         if (!enabled && openOnLoad) {
             const timer = setTimeout(() => setInternalOpen(true), 500);
             return () => clearTimeout(timer);
+        } else if (enabled) {
+            setInternalOpen(false);
         }
     }, [enabled, openOnLoad]);
 

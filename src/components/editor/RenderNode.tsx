@@ -3,7 +3,7 @@
 
 import { useNode, useEditor } from "@craftjs/core";
 import { ROOT_NODE } from "@craftjs/utils";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Move, ArrowUp, Trash2 } from "lucide-react";
 
@@ -31,8 +31,6 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         parent: node.data.parent,
         props: node.data.props,
     }));
-
-    const currentRef = useRef<HTMLDivElement>(null);
 
     // Sync width/height/top/left when DOM changes or is active
     const [dimensions, setDimensions] = useState({ width: 0, height: 0, top: 0, left: 0 });
@@ -96,7 +94,8 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
             }
         }
 
-        const parentNode = query.node(parent!).get();
+        if (!parent) return;
+        const parentNode = query.node(parent).get();
         const parentDom = parentNode.dom;
         if (!parentDom) return;
 
@@ -241,7 +240,6 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
             {isActive || isHovered
                 ? createPortal(
                     <div
-                        ref={currentRef}
                         className="absolute z-10 pointer-events-none"
                         style={{
                             left: dimensions.left,
