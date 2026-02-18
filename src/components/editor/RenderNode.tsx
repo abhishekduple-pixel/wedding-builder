@@ -36,6 +36,16 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         props: node.data.props,
     }));
 
+    // Check if parent is a canvas-mode container (free movement)
+    const { parentLayoutMode } = useEditor((state) => {
+        const parentNode = parent && state.nodes[parent] ? state.nodes[parent] : null;
+        return {
+            parentLayoutMode: parentNode ? parentNode.data.props.layoutMode : "flex",
+        };
+    });
+
+    const isInFreeMode = parentLayoutMode === "canvas" || props.positionType === "absolute";
+
     // Sync width/height/top/left when DOM changes or is active
     const [dimensions, setDimensions] = useState({ width: 0, height: 0, top: 0, left: 0 });
 
@@ -64,8 +74,12 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         return () => observer.disconnect();
     }, [dom, isActive, isHovered, props.top, props.left, props.width, props.height]);
 
-    const handleStartDrag = (e: React.PointerEvent | PointerEvent) => {
+    const handleStartDrag = (e: React.PointerEvent | PointerEvent, forceFreeDrag = false) => {
         if (!moveable || !isActive) return;
+
+        // If not in free mode and not triggered from the toolbar Move icon,
+        // let CraftJS handle the native drag-and-drop (reordering between containers)
+        if (!forceFreeDrag && !isInFreeMode) return;
 
         e.preventDefault();
         (e as Event).stopImmediatePropagation();
@@ -150,7 +164,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
                 dom.removeEventListener("pointerdown", handleStartDrag as any);
             }
         }
-    }, [dom, isActive, moveable, props.left, props.top, props.positionType, parent]);
+    }, [dom, isActive, moveable, props.left, props.top, props.positionType, parent, isInFreeMode]);
 
     // Resizing Logic using standard Pointer Events
     const handleResizeStart = (e: React.PointerEvent, direction: string) => {
@@ -268,7 +282,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
                                     {moveable && (
                                         <div
                                             className="cursor-move hover:bg-blue-600 p-0.5 rounded transition-colors"
-                                            onPointerDown={handleStartDrag}
+                                            onPointerDown={(e) => handleStartDrag(e, true)}
                                         >
                                             <Move size={12} />
                                         </div>
