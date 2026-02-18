@@ -6,7 +6,6 @@ import { ROOT_NODE } from "@craftjs/utils";
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Move, ArrowUp, Trash2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
 const SNAP_GRID = 1;
 
@@ -35,15 +34,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         props: node.data.props,
     }));
 
-    const { parentLayoutMode } = useEditor((state) => {
-        return {
-            parentLayoutMode: parent && state.nodes[parent] ? state.nodes[parent].data.props.layoutMode : "flex"
-        }
-    });
-
-    const isCanvas = true; // Hybrid mode: everything is free-movable by default
     const currentRef = useRef<HTMLDivElement>(null);
-    const dragStartPos = useRef({ top: 0, left: 0, width: 0, height: 0 });
 
     // Sync width/height/top/left when DOM changes or is active
     const [dimensions, setDimensions] = useState({ width: 0, height: 0, top: 0, left: 0 });
@@ -73,15 +64,8 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         return () => observer.disconnect();
     }, [dom, isActive, isHovered, props.top, props.left, props.width, props.height]);
 
-    // Unified Drag Handler for both Toolbar and Direct Component Drag
     const handleStartDrag = (e: React.PointerEvent | PointerEvent) => {
         if (!moveable || !isActive) return;
-
-        // We only want to block interaction if we are actually dragging.
-        // For the toolbar, we always drag.
-        // For the component, we need to be careful not to block text selection if the user just clicks.
-        // But since we are implementing "Free Move", usually left-click-drag IS move.
-        // We will stop propagation to prevent other interactions during drag.
 
         e.preventDefault();
         (e as Event).stopImmediatePropagation();
@@ -160,26 +144,16 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         document.addEventListener("pointerup", onPointerUp);
     };
 
-    // Attach handler to DOM for direct dragging
     useEffect(() => {
         if (dom && isActive && moveable) {
-            // We use 'mousedown' or 'pointerdown'
-            // We need to bind the extraction function
-            // Note: We cast to any because TS might complain about Event vs PointerEvent types matching exactly
             dom.addEventListener("pointerdown", handleStartDrag as any);
             return () => {
                 dom.removeEventListener("pointerdown", handleStartDrag as any);
             }
         }
-    }, [dom, isActive, moveable, props.left, props.top]); // Dependencies need to include props to ensure closure captures fresh state? 
-    // Actually, handleStartDrag reads props.left/top from closure.
-    // If we define handleStartDrag INSIDE the component (which we are), 
-    // then we need to re-bind it when props change, OR use refs for props.
-    // Ideally, we should use refs for mutable values inside the event handler to avoid re-binding constantly.
-    // BUT re-binding on prop change is acceptable for now.
+    }, [dom, isActive, moveable, props.left, props.top]);
 
-
-    // Resizing Logic using standard Pointer Events (fixes double-movement issue)
+    // Resizing Logic using standard Pointer Events
     const handleResizeStart = (e: React.PointerEvent, direction: string) => {
         e.preventDefault();
         e.stopPropagation();
@@ -268,14 +242,6 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         }
     }, [dom, isActive, isHovered]);
 
-    const getPos = (dom: HTMLElement) => {
-        const { top, left, bottom } = dom.getBoundingClientRect();
-        return {
-            top: top > 0 ? top : bottom,
-            left: left,
-        };
-    };
-
     return (
         <>
             {isActive || isHovered
@@ -331,8 +297,8 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
                             )}
                         </div>
 
-                        {/* Resize Handles - Only if active and canvas mode */}
-                        {isActive && isCanvas && (
+                        {/* Resize Handles */}
+                        {isActive && (
                             <>
                                 {/* Corners */}
                                 <div
