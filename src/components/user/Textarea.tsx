@@ -61,7 +61,7 @@ export const UserTextarea = ({ placeholder, value, rows, padding, margin, width,
     }));
 
     const variants = getAnimationVariants(animationType, animationDuration, animationDelay);
-    const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
+    const { itemStyle } = useCanvasDrag(top, left);
 
     return (
         <motion.div
@@ -78,7 +78,6 @@ export const UserTextarea = ({ placeholder, value, rows, padding, margin, width,
             initial="initial"
             animate="animate"
             variants={variants as any}
-            {...dragProps}
         >
             <Textarea
                 placeholder={placeholder}

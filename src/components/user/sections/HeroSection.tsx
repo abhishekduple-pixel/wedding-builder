@@ -1,9 +1,8 @@
 "use client";
 "use no memo";
 
-import { useNode, useEditor } from "@craftjs/core";
+import { useNode } from "@craftjs/core";
 import React from "react";
-import { useCanvasDrag } from "../hooks/useCanvasDrag";
 import { UserText } from "../Text";
 import { UserImage } from "../Image";
 import { Element } from "@craftjs/core";

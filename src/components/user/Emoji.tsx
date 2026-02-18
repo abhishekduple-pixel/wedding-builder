@@ -29,7 +29,7 @@ export const UserEmoji = ({
         left: state.data.props.left || 0,
     }));
     const variants = getAnimationVariants(animationType || "none", animationDuration, animationDelay);
-    const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
+    const { itemStyle } = useCanvasDrag(top, left);
 
     return (
         <motion.div
@@ -41,7 +41,6 @@ export const UserEmoji = ({
             className={selected ? "ring-2 ring-blue-400 ring-offset-2 rounded" : ""}
             initial={variants.initial}
             animate={variants.animate}
-            {...dragProps}
         >
             <div
                 style={{ fontSize: `${size}px`, lineHeight: 1 }}

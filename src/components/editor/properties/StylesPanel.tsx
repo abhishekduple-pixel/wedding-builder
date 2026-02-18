@@ -66,7 +66,7 @@ export const StylesPanel = () => {
                 <div className="flex gap-2">
                     <Input
                         type="color"
-                        value={background || "#transparent"}
+                        value={background && background !== "transparent" ? background : "#ffffff"}
                         className="w-8 h-8 p-1 border-none"
                         onChange={(e) => setProp((props: any) => props.background = e.target.value)}
                     />

@@ -19,7 +19,7 @@ interface PageMeta {
 
 export const Viewport = ({ children }: { children: React.ReactNode }) => {
     const { device } = useAppContext();
-    const { connectors, enabled, actions } = useEditor((state) => ({
+    const { enabled, actions } = useEditor((state) => ({
         enabled: state.options.enabled,
     }));
 

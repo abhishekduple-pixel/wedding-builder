@@ -6,7 +6,7 @@ import { useEditor, Element } from "@craftjs/core";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { ScrollArea } from "../ui/scroll-area";
+
 import { Type, Image as ImageIcon, Square, Youtube, Columns, Grid } from "lucide-react";
 import { Layers } from "./Layers";
 import { UserText } from "../user/Text";

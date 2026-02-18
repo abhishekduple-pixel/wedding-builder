@@ -4,12 +4,12 @@
 import { useEditor, Element } from "@craftjs/core";
 import { ROOT_NODE } from "@craftjs/utils";
 import { Button } from "../ui/button";
-import { Monitor, Play, Redo, Save, Smartphone, Undo, FilePlus, FolderOpen, Trash2, Check, X } from "lucide-react";
+import { Monitor, Play, Redo, Save, Smartphone, Undo, FilePlus, FolderOpen, Trash2 } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { Toggle } from "../ui/toggle";
 import { useAppContext } from "./AppContext";
 import { FullPreview } from "./FullPreview";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -24,7 +24,6 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Template {
     id: string;
@@ -55,6 +54,11 @@ export const Topbar = () => {
     const [newTemplateName, setNewTemplateName] = useState("");
 
     const EMPTY_PAGE_STATE = "{\"ROOT\":{\"type\":{\"resolvedName\":\"UserContainer\"},\"isCanvas\":true,\"props\":{\"background\":\"#ffffff\",\"padding\":10,\"minHeight\":\"800px\",\"width\":\"100%\",\"flexDirection\":\"column\",\"alignItems\":\"flex-start\"},\"displayName\":\"UserContainer\",\"custom\":{},\"hidden\":false,\"nodes\":[],\"linkedNodes\":{}}}";
+
+    // Refs to hold latest callback values for event listeners (avoids stale closures)
+    const handleAddSectionRef = useRef<() => void>(() => {});
+    const loadTemplateRef = useRef<(id: string) => Promise<void>>(async () => {});
+    const actionsRef = useRef(actions);
 
     const broadcastPagesState = (pages: string[], currentId: string | null, sourceTemplates?: Template[]) => {
         const templateSource = sourceTemplates || templates;
@@ -298,19 +302,24 @@ export const Topbar = () => {
         }
     };
 
+    // Keep refs up to date on every render
+    handleAddSectionRef.current = handleAddSection;
+    loadTemplateRef.current = loadTemplate;
+    actionsRef.current = actions;
+
     useEffect(() => {
         const onAddSection = () => {
-            handleAddSection();
+            handleAddSectionRef.current();
         };
         const onAddPage = () => {
-            actions.selectNode(undefined);
+            actionsRef.current.selectNode(undefined);
             setNewPageName("");
             setAddPageDialogOpen(true);
         };
         const onSetPage = (event: any) => {
             const id = event.detail?.id as string | undefined;
             if (id) {
-                loadTemplate(id);
+                loadTemplateRef.current(id);
             }
         };
 
@@ -338,7 +347,7 @@ export const Topbar = () => {
             setCurrentTemplateId(null);
             setCurrentRootId(null);
             setPageIds([]);
-            localStorage.removeItem("wedding-current-template-id");
+            storage.remove("wedding-current-template-id");
             showToast("Started new project");
             broadcastPagesState([], null);
         }

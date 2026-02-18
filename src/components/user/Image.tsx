@@ -2,7 +2,7 @@
 "use no memo";
 
 import { useNode, useEditor, Element } from "@craftjs/core";
-import React, { useRef } from "react";
+import React from "react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Slider } from "../ui/slider";
@@ -121,7 +121,7 @@ export const UserImage = ({ src, width, height, borderRadius, padding, margin, b
     }));
 
     // Access parent node to check if it's a "canvas" container
-    const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
+    const { isCanvas, itemStyle } = useCanvasDrag(top, left);
 
     // Enable free movement if parent is Canvas OR user explicitly selected "Free Movement" (absolute)
     const isFree = isCanvas || positionType === "absolute";
@@ -131,7 +131,6 @@ export const UserImage = ({ src, width, height, borderRadius, padding, margin, b
     return (
         <motion.div
             ref={(ref: any) => connect(drag(ref))}
-            {...dragProps}
             style={{
                 width: typeof width === 'number' ? `${width}px` : (width || "100%"),
                 height: typeof height === 'number' ? `${height}px` : (height || "auto"),

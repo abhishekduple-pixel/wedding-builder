@@ -36,13 +36,11 @@ export const UserAnimatedShape = ({
     left,
     positionType
 }: any) => {
-    const { connectors: { connect, drag }, selected, node } = useNode((state) => ({
+    const { connectors: { connect, drag }, selected, actions: { setProp } } = useNode((state) => ({
         selected: state.events.selected,
-        node: state
     }));
 
-    const { actions: { setProp } } = useNode();
-    const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
+    const { isCanvas, itemStyle } = useCanvasDrag(top, left);
 
     const isFree = isCanvas || positionType === "absolute";
 
@@ -105,7 +103,6 @@ export const UserAnimatedShape = ({
     return (
         <motion.div
             ref={(ref: any) => connect(drag(ref))}
-            {...dragProps}
             style={{
                 display: "inline-block",
                 width: `${width}px`,
@@ -114,8 +111,6 @@ export const UserAnimatedShape = ({
                 ...itemStyle,
                 // Use alignSelf to position the component itself within the parent flex container
                 alignSelf: align === "center" ? "center" : align === "right" ? "flex-end" : "flex-start",
-                top: isFree ? top : undefined,
-                left: isFree ? left : undefined,
                 zIndex: selected ? 10 : 1, // Bring to front when selected
                 transform: selected ? "translateZ(10px)" : "none" // Subtle lift
             }}

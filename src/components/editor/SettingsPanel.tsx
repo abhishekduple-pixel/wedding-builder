@@ -16,7 +16,7 @@ export const SettingsPanel = () => {
         if (currentNodeId) {
             selected = {
                 id: currentNodeId,
-                name: state.nodes[currentNodeId].data.name,
+                name: state.nodes[currentNodeId].data.custom?.displayName || state.nodes[currentNodeId].data.displayName || state.nodes[currentNodeId].data.name,
                 settings: state.nodes[currentNodeId].related && state.nodes[currentNodeId].related.settings,
                 isDeletable: query.node(currentNodeId).isDeletable(),
             };

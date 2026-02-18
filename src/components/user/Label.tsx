@@ -38,7 +38,7 @@ export const UserLabel = ({ text, padding, margin, width, background, borderRadi
     }));
 
     const variants = getAnimationVariants(animationType, animationDuration, animationDelay);
-    const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
+    const { itemStyle } = useCanvasDrag(top, left);
 
     return (
         <motion.div
@@ -55,7 +55,6 @@ export const UserLabel = ({ text, padding, margin, width, background, borderRadi
             initial="initial"
             animate="animate"
             variants={variants as any}
-            {...dragProps}
         >
             <Label className={selected ? "text-blue-500" : ""}>
                 {text}

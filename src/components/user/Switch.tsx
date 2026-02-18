@@ -47,7 +47,7 @@ export const UserSwitch = ({ label, checked, padding, margin, width, background,
     }));
 
     const variants = getAnimationVariants(animationType, animationDuration, animationDelay);
-    const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
+    const { itemStyle } = useCanvasDrag(top, left);
 
     return (
         <motion.div
@@ -64,7 +64,6 @@ export const UserSwitch = ({ label, checked, padding, margin, width, background,
             initial="initial"
             animate="animate"
             variants={variants as any}
-            {...dragProps}
         >
             <Switch checked={checked} />
             {label && <Label>{label}</Label>}

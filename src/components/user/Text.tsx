@@ -2,7 +2,7 @@
 "use no memo";
 
 import { useNode, useEditor } from "@craftjs/core";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import ContentEditable from "react-contenteditable";
 import { Slider } from "../ui/slider";
 import { Label } from "../ui/label";
@@ -16,7 +16,7 @@ import { getSpacing } from "@/lib/utils";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 
     export const TextSettings = () => {
-    const { actions: { setProp }, fontSize, color, textAlign, fontWeight, fontStyle, textDecoration, text, fontFamily } = useNode((node) => ({
+    const { actions: { setProp }, fontSize, color, textAlign, fontWeight, fontStyle, textDecoration, text, fontFamily, top, left } = useNode((node) => ({
         fontSize: node.data.props.fontSize,
         color: node.data.props.color,
         textAlign: node.data.props.textAlign,
@@ -25,6 +25,8 @@ import { useCanvasDrag } from "./hooks/useCanvasDrag";
         textDecoration: node.data.props.textDecoration,
         text: node.data.props.text,
         fontFamily: node.data.props.fontFamily,
+        top: node.data.props.top,
+        left: node.data.props.left,
     }));
 
     return (
@@ -88,7 +90,7 @@ import { useCanvasDrag } from "./hooks/useCanvasDrag";
                     <div className="space-y-1">
                         <Label className="text-xs text-gray-400">Top</Label>
                         <Input
-                            value={useNode((node) => node.data.props.top).top || 0}
+                            value={top || 0}
                             type="number"
                             onChange={(e) => setProp((props: any) => props.top = parseInt(e.target.value))}
                         />
@@ -96,7 +98,7 @@ import { useCanvasDrag } from "./hooks/useCanvasDrag";
                     <div className="space-y-1">
                         <Label className="text-xs text-gray-400">Left</Label>
                         <Input
-                            value={useNode((node) => node.data.props.left).left || 0}
+                            value={left || 0}
                             type="number"
                             onChange={(e) => setProp((props: any) => props.left = parseInt(e.target.value))}
                         />
@@ -161,14 +163,12 @@ import { useCanvasDrag } from "./hooks/useCanvasDrag";
 };
 
 export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontStyle, textDecoration, fontFamily, padding, margin, width, minHeight, background, borderRadius, top, left, animationType, animationDuration, animationDelay }: any) => {
-    const { connectors: { connect, drag }, actions: { setProp }, selected, isActive, parent } = useNode((state) => ({
+    const { connectors: { connect, drag }, actions: { setProp }, selected } = useNode((state) => ({
         selected: state.events.selected,
-        isActive: state.events.selected,
-        parent: state.data.parent,
     }));
 
     // Access parent node to check if it's a "canvas" container
-    const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
+    const { itemStyle } = useCanvasDrag(top, left);
 
     const [editable, setEditable] = useState(false);
 
@@ -188,8 +188,6 @@ export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontSty
             initial="initial"
             animate="animate"
             variants={variants as any}
-
-            {...dragProps}
 
             style={{
                 width,

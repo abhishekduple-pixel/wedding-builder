@@ -144,7 +144,7 @@ export const UserButton = ({ text, url, variant, size, padding, margin, width, b
         enabled: state.options.enabled,
     }));
 
-    const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
+    const { itemStyle } = useCanvasDrag(top, left);
 
     const variants = getAnimationVariants(animationType, animationDuration, animationDelay);
 
@@ -169,9 +169,8 @@ export const UserButton = ({ text, url, variant, size, padding, margin, width, b
             initial="initial"
             animate="animate"
             variants={variants as any}
-            {...dragProps}
         >
-            <Button 
+            <Button
                 variant={variant} 
                 size={size} 
                 className={selected ? "ring-2 ring-blue-400 ring-offset-2" : ""}
