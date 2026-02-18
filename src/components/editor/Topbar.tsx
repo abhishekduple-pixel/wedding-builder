@@ -150,8 +150,13 @@ export const Topbar = () => {
             // Update existing
             const template = templates.find(t => t.id === currentTemplateId);
             if (template) {
-                await saveToStorage(template.name, currentTemplateId);
-                showToast(`Saved "${template.name}"`);
+                try {
+                    await saveToStorage(template.name, currentTemplateId);
+                    showToast(`Saved "${template.name}"`);
+                } catch (e) {
+                    console.error("Failed to save template", e);
+                    showToast("Failed to save", "#ef4444");
+                }
             }
         } else {
             // Open Save As dialog
@@ -260,28 +265,28 @@ export const Topbar = () => {
         const newTemplate = { id, name, lastSaved: Date.now() };
         const newTemplates = [...templates, newTemplate];
 
-        setTemplates(newTemplates);
-        await storage.save("wedding-templates", JSON.stringify(newTemplates));
-        await storage.save(`wedding-template-${id}`, EMPTY_PAGE_STATE);
-        await storage.save("wedding-current-template-id", id);
-
-        const rootId = baseRootId;
-        let pages = pageIds;
-        if (!pages || pages.length === 0 || currentRootId !== rootId) {
-            pages = [rootId];
-        }
-        if (!pages.includes(rootId)) {
-            pages = [rootId, ...pages.filter(p => p !== rootId)];
-        }
-        if (!pages.includes(id)) {
-            pages = [...pages, id];
-        }
-
-        await storage.save(`wedding-page-root-${rootId}`, rootId);
-        await storage.save(`wedding-page-root-${id}`, rootId);
-        await storage.save(`wedding-pages-${rootId}`, JSON.stringify(pages));
-
         try {
+            setTemplates(newTemplates);
+            await storage.save("wedding-templates", JSON.stringify(newTemplates));
+            await storage.save(`wedding-template-${id}`, EMPTY_PAGE_STATE);
+            await storage.save("wedding-current-template-id", id);
+
+            const rootId = baseRootId;
+            let pages = pageIds;
+            if (!pages || pages.length === 0 || currentRootId !== rootId) {
+                pages = [rootId];
+            }
+            if (!pages.includes(rootId)) {
+                pages = [rootId, ...pages.filter(p => p !== rootId)];
+            }
+            if (!pages.includes(id)) {
+                pages = [...pages, id];
+            }
+
+            await storage.save(`wedding-page-root-${rootId}`, rootId);
+            await storage.save(`wedding-page-root-${id}`, rootId);
+            await storage.save(`wedding-pages-${rootId}`, JSON.stringify(pages));
+
             actions.deserialize(EMPTY_PAGE_STATE);
             setCurrentTemplateId(id);
             setCurrentRootId(rootId);
@@ -289,7 +294,7 @@ export const Topbar = () => {
             broadcastPagesState(pages, id, newTemplates);
             showToast(`Created "${name}"`);
         } catch (e) {
-            console.error(e);
+            console.error("Failed to add page", e);
             showToast("Failed to create page", "#ef4444");
         }
     };
