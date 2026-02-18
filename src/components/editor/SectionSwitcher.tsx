@@ -5,6 +5,7 @@ import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEditor } from "@craftjs/core";
 import { useAppContext } from "./AppContext";
+import { showToast } from "@/lib/utils";
 
 
 const SECTIONS = ["Home", "Story", "Schedule", "Gallery", "RSVP", "Travel", "Registry"];
@@ -69,20 +70,7 @@ export const SectionSwitcher = () => {
         }
 
         setCurrentSection(newSection);
-
-        // Show toast
-        const toast = document.createElement("div");
-        toast.innerText = `Switched to ${newSection}`;
-        toast.style.position = "fixed";
-        toast.style.bottom = "20px";
-        toast.style.right = "20px";
-        toast.style.padding = "10px 20px";
-        toast.style.background = "#3b82f6";
-        toast.style.color = "white";
-        toast.style.borderRadius = "5px";
-        toast.style.zIndex = "1000";
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 2000);
+        showToast(`Switched to ${newSection}`, "#3b82f6");
     };
 
     return (

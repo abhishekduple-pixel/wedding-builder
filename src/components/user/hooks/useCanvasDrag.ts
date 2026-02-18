@@ -1,10 +1,9 @@
 "use no memo";
 import { useEditor, useNode } from "@craftjs/core";
 
-export const useCanvasDrag = (top: number, left: number, actions: any) => {
-    const { parent, positionType } = useNode((node) => ({
+export const useCanvasDrag = (top: number, left: number) => {
+    const { parent } = useNode((node) => ({
         parent: node.data.parent,
-        positionType: node.data.props.positionType,
     }));
 
     const { parentLayoutMode } = useEditor((state) => {
@@ -14,9 +13,7 @@ export const useCanvasDrag = (top: number, left: number, actions: any) => {
         }
     });
 
-    const isFree = parentLayoutMode === "canvas" || (positionType === "absolute" && parentLayoutMode === "canvas");
-
-    const dragProps = {};
+    const isFree = parentLayoutMode === "canvas";
 
     const itemStyle: React.CSSProperties = isFree ? {
         position: "absolute",
@@ -28,7 +25,6 @@ export const useCanvasDrag = (top: number, left: number, actions: any) => {
 
     return {
         isCanvas: isFree,
-        dragProps,
         itemStyle
     };
 };

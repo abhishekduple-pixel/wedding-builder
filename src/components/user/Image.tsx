@@ -2,7 +2,7 @@
 "use no memo";
 
 import { useNode, useEditor, Element } from "@craftjs/core";
-import React, { useRef } from "react";
+import React from "react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Slider } from "../ui/slider";
@@ -17,7 +17,7 @@ import { UserContainer } from "./Container";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 
 export const ImageSettings = () => {
-    const { actions: { setProp }, src, width, borderRadius, positionType, grayscale, sourceType, fileName } = useNode((node) => ({
+    const { actions: { setProp }, src, width, borderRadius, positionType, grayscale, sourceType, fileName, align } = useNode((node) => ({
         src: node.data.props.src,
         width: node.data.props.width,
         borderRadius: node.data.props.borderRadius,
@@ -25,6 +25,7 @@ export const ImageSettings = () => {
         grayscale: node.data.props.grayscale,
         sourceType: node.data.props.sourceType,
         fileName: node.data.props.fileName,
+        align: node.data.props.align,
     }));
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,7 +100,7 @@ export const ImageSettings = () => {
 
             <div className="space-y-4 pt-4 border-t">
                 <Label>Alignment (Block)</Label>
-                <ToggleGroup type="single" value={useNode((node) => node.data.props.align).align || "left"} onValueChange={(val) => val && setProp((props: any) => props.align = val)}>
+                <ToggleGroup type="single" value={align || "left"} onValueChange={(val) => val && setProp((props: any) => props.align = val)}>
                     <ToggleGroupItem value="left" aria-label="Align Left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
                     <ToggleGroupItem value="center" aria-label="Align Center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
                     <ToggleGroupItem value="right" aria-label="Align Right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
@@ -121,7 +122,7 @@ export const UserImage = ({ src, width, height, borderRadius, padding, margin, b
     }));
 
     // Access parent node to check if it's a "canvas" container
-    const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
+    const { isCanvas, itemStyle } = useCanvasDrag(top, left);
 
     // Enable free movement if parent is Canvas OR user explicitly selected "Free Movement" (absolute)
     const isFree = isCanvas || positionType === "absolute";
@@ -131,7 +132,6 @@ export const UserImage = ({ src, width, height, borderRadius, padding, margin, b
     return (
         <motion.div
             ref={(ref: any) => connect(drag(ref))}
-            {...dragProps}
             style={{
                 width: typeof width === 'number' ? `${width}px` : (width || "100%"),
                 height: typeof height === 'number' ? `${height}px` : (height || "auto"),

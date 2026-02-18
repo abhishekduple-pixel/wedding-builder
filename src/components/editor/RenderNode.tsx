@@ -3,11 +3,9 @@
 
 import { useNode, useEditor } from "@craftjs/core";
 import { ROOT_NODE } from "@craftjs/utils";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Move, ArrowUp, Trash2 } from "lucide-react";
-
-const SNAP_GRID = 1;
 
 export const RenderNode = ({ render }: { render: React.ReactNode }) => {
     const { id } = useNode();
@@ -33,8 +31,6 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         parent: node.data.parent,
         props: node.data.props,
     }));
-
-    const currentRef = useRef<HTMLDivElement>(null);
 
     // Sync width/height/top/left when DOM changes or is active
     const [dimensions, setDimensions] = useState({ width: 0, height: 0, top: 0, left: 0 });
@@ -98,7 +94,8 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
             }
         }
 
-        const parentNode = query.node(parent!).get();
+        if (!parent) return;
+        const parentNode = query.node(parent).get();
         const parentDom = parentNode.dom;
         if (!parentDom) return;
 
@@ -119,16 +116,14 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
             let newTop = initialTop + deltaY;
             let newLeft = initialLeft + deltaX;
 
-            const snap = (val: number) => Math.round(val / SNAP_GRID) * SNAP_GRID;
-
             // Constrain
             newTop = Math.max(0, Math.min(newTop, parentHeight - domHeight));
             newLeft = Math.max(0, Math.min(newLeft, parentWidth - domWidth));
 
             // Apply directly to state
             actions.setProp(id, (p: any) => {
-                p.top = snap(newTop);
-                p.left = snap(newLeft);
+                p.top = Math.round(newTop);
+                p.left = Math.round(newLeft);
                 p.positionType = "absolute";
             });
 
@@ -151,7 +146,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
                 dom.removeEventListener("pointerdown", handleStartDrag as any);
             }
         }
-    }, [dom, isActive, moveable, props.left, props.top]);
+    }, [dom, isActive, moveable, props.left, props.top, props.positionType, parent]);
 
     // Resizing Logic using standard Pointer Events
     const handleResizeStart = (e: React.PointerEvent, direction: string) => {
@@ -180,15 +175,13 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
             const deltaY = moveEvent.clientY - startY;
 
             actions.setProp(id, (p: any) => {
-                const snap = (val: number) => Math.round(val / SNAP_GRID) * SNAP_GRID;
-
                 if (direction.includes("right")) {
                     const maxWidth = parentWidth - startLeft;
-                    p.width = snap(Math.min(maxWidth, Math.max(20, startWidth + deltaX)));
+                    p.width = Math.round(Math.min(maxWidth, Math.max(20, startWidth + deltaX)));
                 }
                 if (direction.includes("bottom")) {
                     const maxHeight = parentHeight - startTop;
-                    p.height = snap(Math.min(maxHeight, Math.max(20, startHeight + deltaY)));
+                    p.height = Math.round(Math.min(maxHeight, Math.max(20, startHeight + deltaY)));
                 }
                 if (direction.includes("left")) {
                     let newLeft = startLeft + deltaX;
@@ -200,8 +193,8 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
                     }
 
                     if (newWidth >= 20) {
-                        p.width = snap(newWidth);
-                        p.left = snap(newLeft);
+                        p.width = Math.round(newWidth);
+                        p.left = Math.round(newLeft);
                     }
                 }
                 if (direction.includes("top")) {
@@ -215,8 +208,8 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
                     }
 
                     if (newHeight >= 20) {
-                        p.height = snap(newHeight);
-                        p.top = snap(newTop);
+                        p.height = Math.round(newHeight);
+                        p.top = Math.round(newTop);
                     }
                 }
             });
@@ -247,7 +240,6 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
             {isActive || isHovered
                 ? createPortal(
                     <div
-                        ref={currentRef}
                         className="absolute z-10 pointer-events-none"
                         style={{
                             left: dimensions.left,

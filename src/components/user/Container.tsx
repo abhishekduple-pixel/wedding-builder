@@ -8,15 +8,14 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { AlignLeft, AlignCenter, AlignRight, LayoutTemplate, Rows, Columns } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getSpacing } from "@/lib/utils";
 import { AnimationSection, getAnimationVariants } from "./AnimationSection";
 import { motion } from "framer-motion";
 import { SpacingControl } from "../editor/properties/SpacingControl";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 
 export const ContainerSettings = () => {
-  const { actions: { setProp }, id, background, padding, margin, flexDirection, alignItems, justifyContent, flexWrap, gap, borderRadius, backgroundImage, height, minHeight, width, layoutMode, gridColumns, dom } = useNode((node) => ({
-    id: node.id,
+  const { actions: { setProp }, background, padding, margin, flexDirection, alignItems, justifyContent, flexWrap, gap, borderRadius, backgroundImage, height, minHeight, width, layoutMode, gridColumns } = useNode((node) => ({
     background: node.data.props.background,
     padding: node.data.props.padding,
     margin: node.data.props.margin,
@@ -32,19 +31,7 @@ export const ContainerSettings = () => {
     width: node.data.props.width,
     layoutMode: node.data.props.layoutMode,
     gridColumns: node.data.props.gridColumns,
-    dom: node.dom
   }));
-
-  const { query, actions: editorActions } = useEditor();
-
-  const handleLayoutChange = (val: string) => {
-    if (!val) return;
-
-    // Simplified layout switching: Avoid complex DOM calculations that can lead to layout corruption.
-    // Let the user manually reposition if needed.
-
-    setProp((props: any) => props.layoutMode = val);
-  };
 
   return (
     <div className="space-y-4">
@@ -53,7 +40,7 @@ export const ContainerSettings = () => {
         <div className="flex gap-2">
           <Input
             type="color"
-            value={background || "#transparent"}
+            value={background && background !== "transparent" ? background : "#ffffff"}
             className="w-10 h-10 p-1"
             onChange={(e) => setProp((props: any) => props.background = e.target.value)}
           />
@@ -198,16 +185,14 @@ export const ContainerSettings = () => {
 };
 
 export const UserContainer = ({ children, background, padding, margin, flexDirection, alignItems, justifyContent, flexWrap, gap, borderRadius, backgroundImage, height, minHeight, width, layoutMode, gridColumns, animationType, animationDuration, animationDelay, disableVisuals }: any) => {
-  const { connectors: { connect, drag }, selected, node, actions: { setProp }, top, left, childNodes, dom } = useNode((state) => ({
+  const { connectors: { connect, drag }, selected, node, actions: { setProp }, top, left } = useNode((state) => ({
     selected: state.events.selected,
     node: state,
     top: state.data.props.top,
     left: state.data.props.left,
-    childNodes: state.data.nodes,
-    dom: state.dom
   }));
 
-  const { enabled, query, actions: editorActions } = useEditor((state) => ({
+  const { enabled, actions: editorActions } = useEditor((state) => ({
     enabled: state.options.enabled,
   }));
 
@@ -217,22 +202,9 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
     }
   }, [disableVisuals, selected, node?.data?.parent, editorActions]);
 
-  const prevChildNodesRef = React.useRef(childNodes);
-
-  React.useEffect(() => {
-    // Detect added node if needed for drop positioning
-  }, [childNodes, layoutMode, node.id, editorActions, dom]);
-
-  const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
+  const { isCanvas, itemStyle } = useCanvasDrag(top, left);
 
   const variants = getAnimationVariants(animationType, animationDuration, animationDelay);
-
-  // Helper to get spacing string or valid object values
-  const getSpacing = (space: any) => {
-    if (typeof space === "number") return `${space}px`;
-    if (!space) return "0px";
-    return `${space.top}px ${space.right}px ${space.bottom}px ${space.left}px`;
-  };
 
   // Check if container is empty (no children)
   const hasChildren = React.Children.count(children) > 0 || (node?.data?.nodes && node.data.nodes.length > 0);
@@ -316,7 +288,6 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
       initial="initial"
       animate="animate"
       variants={variants as any}
-      {...dragProps}
     >
       {children}
     </motion.div>

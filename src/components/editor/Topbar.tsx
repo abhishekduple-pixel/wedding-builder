@@ -4,12 +4,12 @@
 import { useEditor, Element } from "@craftjs/core";
 import { ROOT_NODE } from "@craftjs/utils";
 import { Button } from "../ui/button";
-import { Monitor, Play, Redo, Save, Smartphone, Undo, FilePlus, FolderOpen, Trash2, Check, X } from "lucide-react";
+import { Monitor, Play, Redo, Save, Smartphone, Undo, FilePlus, FolderOpen, Trash2 } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { Toggle } from "../ui/toggle";
 import { useAppContext } from "./AppContext";
 import { FullPreview } from "./FullPreview";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -23,8 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn, showToast } from "@/lib/utils";
 
 interface Template {
     id: string;
@@ -55,6 +54,11 @@ export const Topbar = () => {
     const [newTemplateName, setNewTemplateName] = useState("");
 
     const EMPTY_PAGE_STATE = "{\"ROOT\":{\"type\":{\"resolvedName\":\"UserContainer\"},\"isCanvas\":true,\"props\":{\"background\":\"#ffffff\",\"padding\":10,\"minHeight\":\"800px\",\"width\":\"100%\",\"flexDirection\":\"column\",\"alignItems\":\"flex-start\"},\"displayName\":\"UserContainer\",\"custom\":{},\"hidden\":false,\"nodes\":[],\"linkedNodes\":{}}}";
+
+    // Refs to hold latest callback values for event listeners (avoids stale closures)
+    const handleAddSectionRef = useRef<() => void>(() => {});
+    const loadTemplateRef = useRef<(id: string) => Promise<void>>(async () => {});
+    const actionsRef = useRef(actions);
 
     const broadcastPagesState = (pages: string[], currentId: string | null, sourceTemplates?: Template[]) => {
         const templateSource = sourceTemplates || templates;
@@ -94,20 +98,6 @@ export const Topbar = () => {
         load();
     }, []);
 
-    const showToast = (message: string, color: string = "#4ade80") => {
-        const toast = document.createElement("div");
-        toast.innerText = message;
-        toast.style.position = "fixed";
-        toast.style.bottom = "20px";
-        toast.style.right = "20px";
-        toast.style.padding = "10px 20px";
-        toast.style.background = color;
-        toast.style.color = "white";
-        toast.style.borderRadius = "5px";
-        toast.style.zIndex = "1000";
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 2000);
-    };
 
     const handleSave = async () => {
         if (currentTemplateId) {
@@ -298,19 +288,24 @@ export const Topbar = () => {
         }
     };
 
+    // Keep refs up to date on every render
+    handleAddSectionRef.current = handleAddSection;
+    loadTemplateRef.current = loadTemplate;
+    actionsRef.current = actions;
+
     useEffect(() => {
         const onAddSection = () => {
-            handleAddSection();
+            handleAddSectionRef.current();
         };
         const onAddPage = () => {
-            actions.selectNode(undefined);
+            actionsRef.current.selectNode(undefined);
             setNewPageName("");
             setAddPageDialogOpen(true);
         };
         const onSetPage = (event: any) => {
             const id = event.detail?.id as string | undefined;
             if (id) {
-                loadTemplate(id);
+                loadTemplateRef.current(id);
             }
         };
 
@@ -325,7 +320,7 @@ export const Topbar = () => {
         };
     }, []);
 
-    const handleNewProject = () => {
+    const handleNewProject = async () => {
         if (confirm("Are you sure? This will clear your current editor.")) {
             actions.clearEvents();
             try {
@@ -338,7 +333,7 @@ export const Topbar = () => {
             setCurrentTemplateId(null);
             setCurrentRootId(null);
             setPageIds([]);
-            localStorage.removeItem("wedding-current-template-id");
+            await storage.remove("wedding-current-template-id");
             showToast("Started new project");
             broadcastPagesState([], null);
         }

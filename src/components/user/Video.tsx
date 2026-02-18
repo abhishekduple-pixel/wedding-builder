@@ -151,7 +151,7 @@ export const UserVideo = ({ url, width, height, padding, margin, background, bor
         enabled: state.options.enabled
     }));
 
-    const { isCanvas, dragProps, itemStyle } = useCanvasDrag(top, left, { setProp });
+    const { itemStyle } = useCanvasDrag(top, left);
 
     const getEmbedUrl = (url: string) => {
         if (!url) return "";
@@ -202,7 +202,6 @@ export const UserVideo = ({ url, width, height, padding, margin, background, bor
     return (
         <motion.div
             ref={(ref: any) => connect(drag(ref))}
-            {...dragProps}
             style={{
                 width: typeof width === 'number' ? `${width}px` : (width || "100%"),
                 height: typeof height === 'number' ? `${height}px` : (height || "auto"),
