@@ -11,15 +11,12 @@ import { AlignLeft, AlignCenter, AlignRight, LayoutTemplate, Rows, Columns } fro
 import { cn, getSpacing, getResponsiveSpacing } from "@/lib/utils";
 import { AnimationSection, getAnimationVariants } from "./AnimationSection";
 import { motion } from "framer-motion";
-import { SpacingControl } from "../editor/properties/SpacingControl";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 import { useAppContext } from "../editor/AppContext";
 
 export const ContainerSettings = () => {
-  const { actions: { setProp }, background, padding, margin, flexDirection, alignItems, justifyContent, flexWrap, gap, borderRadius, backgroundImage, height, minHeight, width, layoutMode, gridColumns } = useNode((node) => ({
+  const { actions: { setProp }, background, flexDirection, alignItems, justifyContent, flexWrap, gap, borderRadius, backgroundImage, height, minHeight, width, layoutMode, gridColumns } = useNode((node) => ({
     background: node.data.props.background,
-    padding: node.data.props.padding,
-    margin: node.data.props.margin,
     flexDirection: node.data.props.flexDirection,
     alignItems: node.data.props.alignItems,
     justifyContent: node.data.props.justifyContent,
@@ -50,19 +47,6 @@ export const ContainerSettings = () => {
             onChange={(e) => setProp((props: any) => props.background = e.target.value)}
           />
         </div>
-      </div>
-
-      <div className="space-y-4 pt-2">
-        <SpacingControl
-          label="Padding"
-          value={padding}
-          onChange={(val) => setProp((props: any) => props.padding = val)}
-        />
-        <SpacingControl
-          label="Margin"
-          value={margin}
-          onChange={(val) => setProp((props: any) => props.margin = val)}
-        />
       </div>
 
       <div className="space-y-2">
@@ -283,7 +267,6 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
         width: device === "mobile" 
           ? "100%" 
           : (typeof width === "number" ? `${width}px` : width),
-        maxWidth: device === "mobile" ? "100%" : undefined,
         borderRadius: `${borderRadius}px`,
         ...itemStyle, // This overwrites position/top/left if isCanvas is true
       }}

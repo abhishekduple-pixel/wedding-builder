@@ -8,25 +8,17 @@ import { Input } from "../ui/input";
 import { Slider } from "../ui/slider";
 import { AnimationSection, getAnimationVariants } from "./AnimationSection";
 import { motion } from "framer-motion";
-import { StylesPanel } from "../editor/properties/StylesPanel";
 import { getSpacing, getResponsiveSpacing } from "@/lib/utils";
-import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
-import { Switch } from "../ui/switch";
-import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { UserContainer } from "./Container";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 import { useAppContext } from "../editor/AppContext";
 
 export const ImageSettings = () => {
-    const { actions: { setProp }, src, width, borderRadius, positionType, grayscale, sourceType, fileName, align } = useNode((node) => ({
+    const { actions: { setProp }, src, sourceType, fileName, background } = useNode((node) => ({
         src: node.data.props.src,
-        width: node.data.props.width,
-        borderRadius: node.data.props.borderRadius,
-        positionType: node.data.props.positionType,
-        grayscale: node.data.props.grayscale,
         sourceType: node.data.props.sourceType,
         fileName: node.data.props.fileName,
-        align: node.data.props.align,
+        background: node.data.props.background,
     }));
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,31 +80,23 @@ export const ImageSettings = () => {
                 />
             </div>
 
-            <div className="space-y-4 pt-4 border-t">
-                <Label>Movement Mode</Label>
-                <ToggleGroup type="single" value={positionType || "relative"} onValueChange={(val) => val && setProp((props: any) => props.positionType = val)}>
-                    <ToggleGroupItem value="relative" className="text-xs px-2">Auto-Layout</ToggleGroupItem>
-                    <ToggleGroupItem value="absolute" className="text-xs px-2">Free Movement</ToggleGroupItem>
-                </ToggleGroup>
-                <p className="text-[10px] text-gray-400">
-                    {positionType === "absolute"
-                        ? "Drag the image anywhere on the screen."
-                        : "Image follows the list order."}
-                </p>
+            <div className="space-y-2 pt-4 border-t">
+                <Label>Background Color</Label>
+                <div className="flex gap-2">
+                    <Input
+                        type="color"
+                        value={background && background !== "transparent" ? background : "#ffffff"}
+                        className="w-8 h-8 p-1 border-none"
+                        onChange={(e) => setProp((props: any) => (props.background = e.target.value))}
+                    />
+                    <Input
+                        value={background || ""}
+                        placeholder="transparent or #hex"
+                        onChange={(e) => setProp((props: any) => (props.background = e.target.value))}
+                        className="h-8 flex-1"
+                    />
+                </div>
             </div>
-
-            {/* Removed individual controls in favor of StylesPanel */}
-
-            <div className="space-y-4 pt-4 border-t">
-                <Label>Alignment (Block)</Label>
-                <ToggleGroup type="single" value={align || "left"} onValueChange={(val) => val && setProp((props: any) => props.align = val)}>
-                    <ToggleGroupItem value="left" aria-label="Align Left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="center" aria-label="Align Center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="right" aria-label="Align Right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
-                </ToggleGroup>
-            </div>
-
-            <StylesPanel />
         </div>
     );
 };
@@ -187,7 +171,7 @@ export const UserImage = ({ src, width, height, borderRadius, padding, margin, b
                     left: 0,
                     width: "100%",
                     height: "100%",
-                    pointerEvents: isDragging ? "auto" : "none"
+                    pointerEvents: "auto"
                 }}>
                     <Element
                         id="image_overlay"

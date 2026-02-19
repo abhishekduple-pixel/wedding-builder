@@ -134,7 +134,7 @@ export const UserAnimatedShape = ({
 };
 
 const AnimatedShapeSettings = () => {
-    const { actions: { setProp }, width, height, backgroundColor, shapeType, loopAnimation, align, positionType, top, left } = useNode((node) => ({
+    const { actions: { setProp }, width, height, backgroundColor, shapeType, loopAnimation, align, positionType } = useNode((node) => ({
         width: node.data.props.width,
         height: node.data.props.height,
         backgroundColor: node.data.props.backgroundColor,
@@ -142,8 +142,6 @@ const AnimatedShapeSettings = () => {
         loopAnimation: node.data.props.loopAnimation,
         align: node.data.props.align,
         positionType: node.data.props.positionType,
-        top: node.data.props.top,
-        left: node.data.props.left,
     }));
 
     return (
@@ -178,30 +176,6 @@ const AnimatedShapeSettings = () => {
                     <ToggleGroupItem value="center" aria-label="Align Center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
                     <ToggleGroupItem value="right" aria-label="Align Right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
                 </ToggleGroup>
-            </div>
-
-            <div className="space-y-4 pt-4 border-t">
-                <Label>Position (Free Mode)</Label>
-                <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                        <Label className="text-xs text-gray-400">Top</Label>
-                        <Input
-                            value={top || 0}
-                            type="number"
-                            onChange={(e) => setProp((props: any) => props.top = parseInt(e.target.value))}
-                            disabled={positionType === "relative"}
-                        />
-                    </div>
-                    <div className="space-y-1">
-                        <Label className="text-xs text-gray-400">Left</Label>
-                        <Input
-                            value={left || 0}
-                            type="number"
-                            onChange={(e) => setProp((props: any) => props.left = parseInt(e.target.value))}
-                            disabled={positionType === "relative"}
-                        />
-                    </div>
-                </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2 pt-4 border-t">

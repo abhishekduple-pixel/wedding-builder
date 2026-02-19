@@ -134,7 +134,7 @@ export const ButtonSettings = () => {
     );
 };
 
-export const UserButton = ({ text, url, variant, size, padding, margin, width, background, borderRadius, color, borderColor, align, animationType, animationDuration, animationDelay, fontSize }: any) => {
+export const UserButton = ({ text, url, variant, size, padding, margin, width, height, background, borderRadius, color, borderColor, align, animationType, animationDuration, animationDelay, fontSize }: any) => {
     const { connectors: { connect, drag }, selected, actions: { setProp }, top, left } = useNode((node) => ({
         selected: node.events.selected,
         top: node.data.props.top,
@@ -164,17 +164,20 @@ export const UserButton = ({ text, url, variant, size, padding, margin, width, b
         }
     };
 
-    // On mobile, buttons should be full width unless explicitly set otherwise
-    const buttonWidth = device === "mobile" 
-        ? (align ? "100%" : (width || "100%"))
-        : responsiveWidth;
+    // On mobile, buttons should be full width unless explicitly set otherwise; support numeric width/height from corner resize
+    const wrapperWidth = typeof width === "number" ? `${width}px` : (device === "mobile" || align ? "100%" : "auto");
+    const wrapperHeight = typeof height === "number" ? `${height}px` : undefined;
+    const buttonWidth = device === "mobile"
+        ? (align ? "100%" : (typeof width === "number" ? `${width}px` : width || "100%"))
+        : (typeof width === "number" ? `${width}px` : responsiveWidth);
 
     return (
         <motion.div
             ref={(ref: any) => connect(drag(ref))}
             className={device === "mobile" || align ? "flex w-full" : "inline-block"}
             style={{
-                width: device === "mobile" || align ? "100%" : "auto",
+                width: wrapperWidth,
+                height: wrapperHeight,
                 margin: getSpacing(device === "mobile" ? getResponsiveSpacing(margin, device) : margin),
                 justifyContent: align === "center" ? "center" : align === "right" ? "flex-end" : "flex-start",
                 ...(device === "mobile" ? { position: "relative", top: 0, left: 0 } : itemStyle),
@@ -228,6 +231,7 @@ UserButton.craft = {
         animationDelay: 0,
         top: 0,
         left: 0,
+        height: undefined,
         fontSize: 14,
     },
     related: {

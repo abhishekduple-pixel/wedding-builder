@@ -6,12 +6,9 @@ import { useNode } from "@craftjs/core";
 import { Label } from "../../ui/label";
 import { Input } from "../../ui/input";
 import { Slider } from "../../ui/slider";
-import { SpacingControl } from "./SpacingControl";
 
 export const StylesPanel = () => {
-    const { actions: { setProp }, padding, margin, width, minHeight, background, borderRadius } = useNode((node) => ({
-        padding: node.data.props.padding,
-        margin: node.data.props.margin,
+    const { actions: { setProp }, width, minHeight, background, borderRadius } = useNode((node) => ({
         width: node.data.props.width,
         minHeight: node.data.props.minHeight,
         background: node.data.props.background,
@@ -44,20 +41,6 @@ export const StylesPanel = () => {
                         />
                     </div>
                 </div>
-            </div>
-
-            {/* Spacing */}
-            <div className="space-y-4">
-                <SpacingControl
-                    label="Padding"
-                    value={padding}
-                    onChange={(val) => setProp((props: any) => props.padding = val)}
-                />
-                <SpacingControl
-                    label="Margin"
-                    value={margin}
-                    onChange={(val) => setProp((props: any) => props.margin = val)}
-                />
             </div>
 
             {/* Appearance */}

@@ -16,12 +16,10 @@ import { useCanvasDrag } from "./hooks/useCanvasDrag";
 import { useAppContext } from "../editor/AppContext";
 
 export const VideoSettings = () => {
-    const { actions: { setProp }, url, width, height, padding, margin, background, borderRadius, minHeight, autoplay, loop, controls, animationType, animationDuration, animationDelay, align, top, left } = useNode((node) => ({
+    const { actions: { setProp }, url, width, height, background, borderRadius, minHeight, autoplay, loop, controls, animationType, animationDuration, animationDelay, align } = useNode((node) => ({
         url: node.data.props.url,
         width: node.data.props.width,
         height: node.data.props.height,
-        padding: node.data.props.padding,
-        margin: node.data.props.margin,
         background: node.data.props.background,
         borderRadius: node.data.props.borderRadius,
         minHeight: node.data.props.minHeight,
@@ -32,8 +30,6 @@ export const VideoSettings = () => {
         animationDuration: node.data.props.animationDuration,
         animationDelay: node.data.props.animationDelay,
         align: node.data.props.align,
-        top: node.data.props.top,
-        left: node.data.props.left,
     }));
 
     return (
@@ -84,28 +80,6 @@ export const VideoSettings = () => {
                         });
                     }}
                 />
-            </div>
-
-            <div className="space-y-4 pt-4 border-t">
-                <Label>Position (Canvas Mode)</Label>
-                <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                        <Label className="text-xs text-gray-400">Top</Label>
-                        <Input
-                            value={top || 0}
-                            type="number"
-                            onChange={(e) => setProp((props: any) => props.top = parseInt(e.target.value))}
-                        />
-                    </div>
-                    <div className="space-y-1">
-                        <Label className="text-xs text-gray-400">Left</Label>
-                        <Input
-                            value={left || 0}
-                            type="number"
-                            onChange={(e) => setProp((props: any) => props.left = parseInt(e.target.value))}
-                        />
-                    </div>
-                </div>
             </div>
 
             <div className="space-y-2">

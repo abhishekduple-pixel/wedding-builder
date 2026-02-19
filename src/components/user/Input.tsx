@@ -56,7 +56,7 @@ export const InputSettings = () => {
     );
 };
 
-export const UserInput = ({ placeholder, type, value, padding, margin, width, background, borderRadius, animationType, animationDuration, animationDelay }: any) => {
+export const UserInput = ({ placeholder, type, value, padding, margin, width, height, background, borderRadius, animationType, animationDuration, animationDelay }: any) => {
     const { connectors: { connect, drag }, selected, actions: { setProp }, top, left } = useNode((state) => ({
         selected: state.events.selected,
         top: state.data.props.top || 0,
@@ -74,7 +74,8 @@ export const UserInput = ({ placeholder, type, value, padding, margin, width, ba
         <motion.div
             ref={(ref: any) => connect(drag(ref))}
             style={{
-                width: width || "100%",
+                width: typeof width === "number" ? `${width}px` : (width || "100%"),
+                height: typeof height === "number" ? `${height}px` : undefined,
                 padding: getSpacing(padding),
                 margin: getSpacing(margin),
                 background,
@@ -107,6 +108,9 @@ UserInput.craft = {
         padding: 0,
         margin: 0,
         width: "100%",
+        height: undefined,
+        top: 0,
+        left: 0,
         background: "transparent",
         borderRadius: 0,
         animationType: "none",

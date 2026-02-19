@@ -17,7 +17,7 @@ import { useCanvasDrag } from "./hooks/useCanvasDrag";
 import { useAppContext } from "../editor/AppContext";
 
     export const TextSettings = () => {
-    const { actions: { setProp }, fontSize, color, textAlign, fontWeight, fontStyle, textDecoration, text, fontFamily, top, left } = useNode((node) => ({
+    const { actions: { setProp }, fontSize, color, textAlign, fontWeight, fontStyle, textDecoration, text, fontFamily, height, width } = useNode((node) => ({
         fontSize: node.data.props.fontSize,
         color: node.data.props.color,
         textAlign: node.data.props.textAlign,
@@ -26,8 +26,8 @@ import { useAppContext } from "../editor/AppContext";
         textDecoration: node.data.props.textDecoration,
         text: node.data.props.text,
         fontFamily: node.data.props.fontFamily,
-        top: node.data.props.top,
-        left: node.data.props.left,
+        height: node.data.props.height,
+        width: node.data.props.width,
     }));
 
     return (
@@ -63,7 +63,15 @@ import { useAppContext } from "../editor/AppContext";
                     defaultValue={[fontSize || 16]}
                     max={100}
                     step={1}
-                    onValueChange={(val) => setProp((props: any) => props.fontSize = val[0])}
+                    onValueChange={(val) => {
+                        const newSize = val[0];
+                        setProp((props: any) => {
+                            props.fontSize = newSize;
+                            props.baseFontSize = newSize;
+                            props.baseHeight = typeof height === "number" ? height : undefined;
+                            props.baseWidth = typeof width === "number" ? width : undefined;
+                        });
+                    }}
                 />
             </div>
 
@@ -81,29 +89,6 @@ import { useAppContext } from "../editor/AppContext";
                         value={color || "#000000"}
                         onChange={(e) => setProp((props: any) => props.color = e.target.value)}
                     />
-                </div>
-            </div>
-
-            {/* Position Settings - Only show if parent is canvas? Ideally we check parent props, but strict "canvas" mode check might be complex here. For now, we always show or check context if possible. But easier is just to show them if "top/left" are set or we add a "Positioning" section */}
-            <div className="space-y-4 pt-4 border-t">
-                <Label>Position (Canvas Mode)</Label>
-                <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                        <Label className="text-xs text-gray-400">Top</Label>
-                        <Input
-                            value={top || 0}
-                            type="number"
-                            onChange={(e) => setProp((props: any) => props.top = parseInt(e.target.value))}
-                        />
-                    </div>
-                    <div className="space-y-1">
-                        <Label className="text-xs text-gray-400">Left</Label>
-                        <Input
-                            value={left || 0}
-                            type="number"
-                            onChange={(e) => setProp((props: any) => props.left = parseInt(e.target.value))}
-                        />
-                    </div>
                 </div>
             </div>
 
@@ -163,7 +148,7 @@ import { useAppContext } from "../editor/AppContext";
     );
 };
 
-export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontStyle, textDecoration, fontFamily, padding, margin, width, minHeight, background, borderRadius, top, left, animationType, animationDuration, animationDelay }: any) => {
+export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontStyle, textDecoration, fontFamily, padding, margin, width, height, baseFontSize, baseHeight, baseWidth, minHeight, background, borderRadius, top, left, animationType, animationDuration, animationDelay }: any) => {
     const { connectors: { connect, drag }, actions: { setProp }, selected } = useNode((state) => ({
         selected: state.events.selected,
     }));
@@ -180,15 +165,47 @@ export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontSty
         setEditable(false);
     }, [selected]);
 
+    // When box is resized (numeric width/height), establish or use baseline so text scales with box
+    useEffect(() => {
+        const w = typeof width === "number" ? width : undefined;
+        const h = typeof height === "number" ? height : undefined;
+        const bw = typeof baseWidth === "number" ? baseWidth : undefined;
+        const bh = typeof baseHeight === "number" ? baseHeight : undefined;
+        const bf = typeof baseFontSize === "number" ? baseFontSize : undefined;
+        const hasSize = (w != null && w > 0) || (h != null && h > 0);
+        if (!hasSize || (bw != null && bh != null && bf != null)) return;
+        try {
+            setProp((p: any) => {
+                if (p.baseWidth == null && typeof p.width === "number") p.baseWidth = p.width;
+                if (p.baseHeight == null && typeof p.height === "number") p.baseHeight = p.height;
+                if (p.baseFontSize == null) p.baseFontSize = p.fontSize || 16;
+            });
+        } catch {
+            // Node may have been removed (e.g. deleted); ignore
+        }
+    }, [width, height, baseWidth, baseHeight, baseFontSize, setProp]);
+
     const variants = getAnimationVariants(animationType, animationDuration, animationDelay);
 
-    // Get responsive font size based on device
-    const responsiveFontSize = getResponsiveFontSize(fontSize || 16, device);
-    
-    // Adjust width for mobile - ensure it doesn't exceed container
-    const responsiveWidth = device === "mobile" && width && typeof width === "string" && width.includes("px") 
-        ? "100%" 
+    const baseF = typeof baseFontSize === "number" ? baseFontSize : (fontSize || 16);
+    const baseW = typeof baseWidth === "number" && baseWidth > 0 ? baseWidth : null;
+    const baseH = typeof baseHeight === "number" && baseHeight > 0 ? baseHeight : null;
+    const numWidth = typeof width === "number" ? width : null;
+    const numHeight = typeof height === "number" ? height : null;
+    const scaleW = baseW != null && numWidth != null ? numWidth / baseW : 1;
+    const scaleH = baseH != null && numHeight != null ? numHeight / baseH : 1;
+    const scale = (scaleW !== 1 || scaleH !== 1) ? Math.min(scaleW, scaleH) : 1;
+    const scaledFontSize = Math.round(Math.max(8, Math.min(200, baseF * scale)));
+
+    // Get responsive font size based on device (use scaled size when resized by width or height)
+    const responsiveFontSize = getResponsiveFontSize((numWidth != null || numHeight != null) ? scaledFontSize : (fontSize || 16), device);
+
+    // Adjust width for mobile - ensure it doesn't exceed container; use numeric width/height from corner resize when set
+    const responsiveWidth = device === "mobile" && width && typeof width === "string" && width.includes("px")
+        ? "100%"
         : width;
+    const styleWidth = typeof width === "number" ? `${width}px` : (device === "mobile" ? "100%" : responsiveWidth);
+    const styleHeight = typeof height === "number" ? `${height}px` : undefined;
 
     return (
         <motion.div
@@ -201,7 +218,8 @@ export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontSty
             variants={variants as any}
 
             style={{
-                width: device === "mobile" ? "100%" : responsiveWidth,
+                width: styleWidth,
+                height: styleHeight,
                 minHeight,
                 padding: getSpacing(device === "mobile" ? getResponsiveSpacing(padding, device) : padding),
                 margin: getSpacing(device === "mobile" ? getResponsiveSpacing(margin, device) : margin),
@@ -218,8 +236,8 @@ export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontSty
                 wordBreak: "break-word",
 
                 // For fit-content width, we must align the block itself
-                alignSelf: device === "mobile" 
-                    ? undefined 
+                alignSelf: device === "mobile"
+                    ? undefined
                     : ((responsiveWidth === "fit-content" || responsiveWidth === "auto")
                         ? (textAlign === "center" ? "center" : textAlign === "right" ? "flex-end" : "flex-start")
                         : undefined),
@@ -267,6 +285,7 @@ UserText.craft = {
         padding: 0,
         margin: 0,
         width: "fit-content",
+        height: undefined,
         minHeight: "auto",
         background: "transparent",
         borderRadius: 0,
@@ -275,6 +294,9 @@ UserText.craft = {
         animationDelay: 0,
         top: 0,
         left: 0,
+        baseFontSize: undefined,
+        baseHeight: undefined,
+        baseWidth: undefined,
     },
     related: {
         settings: TextSettings,

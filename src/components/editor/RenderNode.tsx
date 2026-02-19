@@ -3,7 +3,7 @@
 
 import { useNode, useEditor } from "@craftjs/core";
 import { ROOT_NODE } from "@craftjs/utils";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Move, ArrowUp, Trash2 } from "lucide-react";
 
@@ -32,16 +32,6 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         props: node.data.props,
     }));
 
-    // Check if parent is a canvas-mode container (free movement)
-    const { parentLayoutMode } = useEditor((state) => {
-        const parentNode = parent && state.nodes[parent] ? state.nodes[parent] : null;
-        return {
-            parentLayoutMode: parentNode ? parentNode.data.props.layoutMode : "flex",
-        };
-    });
-
-    const isInFreeMode = parentLayoutMode === "canvas" || props.positionType === "absolute";
-
     // Sync width/height/top/left when DOM changes or is active
     const [dimensions, setDimensions] = useState({ width: 0, height: 0, top: 0, left: 0 });
 
@@ -64,31 +54,30 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         };
 
         update();
+        const rafId = requestAnimationFrame(update);
         const observer = new ResizeObserver(update);
         observer.observe(dom);
 
-        return () => observer.disconnect();
+        return () => {
+            cancelAnimationFrame(rafId);
+            observer.disconnect();
+        };
     }, [dom, isActive, isHovered, props.top, props.left, props.width, props.height]);
 
-    const handleStartDrag = (e: React.PointerEvent | PointerEvent, forceFreeDrag = false) => {
-        if (!moveable || !isActive) return;
-
-        // If not in free mode and not triggered from the toolbar Move icon,
-        // let CraftJS handle the native drag-and-drop (reordering between containers)
-        if (!forceFreeDrag && !isInFreeMode) return;
+    // Single unified free-move logic: used by both toolbar Move icon and canvas (drag element).
+    // Always moves by updating top/left; converts to absolute + measures from DOM when needed.
+    const startFreeMove = (e: React.PointerEvent | PointerEvent) => {
+        if (!moveable) return;
 
         e.preventDefault();
-        (e as Event).stopImmediatePropagation();
+        e.stopPropagation();
 
         const startX = e.clientX;
         const startY = e.clientY;
 
-        // If we are currently "relative", we need to "snap" to absolute to start floating
-        // We do this by calculating our current DOM offset relative to the parent
-        let startLeft = props.left || 0;
-        let startTop = props.top || 0;
+        let startLeft = props.left ?? 0;
+        let startTop = props.top ?? 0;
 
-        // Only recalculate from DOM if element is not yet absolutely positioned
         if (props.positionType !== "absolute" && dom && parent) {
             const parentNode = query.node(parent).get();
             const parentDom = parentNode?.dom;
@@ -97,7 +86,6 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
                 const childRect = dom.getBoundingClientRect();
                 startTop = childRect.top - parentRect.top;
                 startLeft = childRect.left - parentRect.left;
-
                 actions.setProp(id, (p: any) => {
                     p.positionType = "absolute";
                     p.top = startTop;
@@ -118,30 +106,21 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         const parentHeight = parentDom.clientHeight;
         const domWidth = dom ? dom.offsetWidth : 0;
         const domHeight = dom ? dom.offsetHeight : 0;
-
-        // We need to keep track of the initial position LOCALLY for the drag duration
         const initialTop = startTop;
         const initialLeft = startLeft;
 
         const onPointerMove = (moveEvent: PointerEvent) => {
             const deltaX = moveEvent.clientX - startX;
             const deltaY = moveEvent.clientY - startY;
-
-            // Calculate new position based on the SNAPSHOT start position + delta
             let newTop = initialTop + deltaY;
             let newLeft = initialLeft + deltaX;
-
-            // Constrain
             newTop = Math.max(0, Math.min(newTop, parentHeight - domHeight));
             newLeft = Math.max(0, Math.min(newLeft, parentWidth - domWidth));
-
-            // Apply directly to state
             actions.setProp(id, (p: any) => {
                 p.top = Math.round(newTop);
                 p.left = Math.round(newLeft);
                 p.positionType = "absolute";
             });
-
             window.dispatchEvent(new CustomEvent("craftjs-element-drag"));
         };
 
@@ -154,14 +133,26 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         document.addEventListener("pointerup", onPointerUp);
     };
 
+    const startFreeMoveRef = useRef(startFreeMove);
+    startFreeMoveRef.current = startFreeMove;
+
     useEffect(() => {
-        if (dom && isActive && moveable) {
-            dom.addEventListener("pointerdown", handleStartDrag as any);
-            return () => {
-                dom.removeEventListener("pointerdown", handleStartDrag as any);
-            }
-        }
-    }, [dom, isActive, moveable, props.left, props.top, props.positionType, parent, isInFreeMode]);
+        if (!dom || !moveable) return;
+
+        const onCanvasPointerDown = (event: PointerEvent) => {
+            if (!dom.contains(event.target as Node)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            actions.selectNode(id);
+            startFreeMoveRef.current(event);
+        };
+
+        dom.addEventListener("pointerdown", onCanvasPointerDown, true);
+
+        return () => {
+            dom.removeEventListener("pointerdown", onCanvasPointerDown, true);
+        };
+    }, [dom, moveable]);
 
     // Resizing Logic using standard Pointer Events
     const handleResizeStart = (e: React.PointerEvent, direction: string) => {
@@ -277,7 +268,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
                                     {moveable && (
                                         <div
                                             className="cursor-move hover:bg-blue-600 p-0.5 rounded transition-colors"
-                                            onPointerDown={(e) => handleStartDrag(e, true)}
+                                            onPointerDown={(e) => startFreeMove(e)}
                                         >
                                             <Move size={12} />
                                         </div>

@@ -20,10 +20,12 @@ interface EmojiProps {
 export const UserEmoji = ({
     emoji = "😊",
     size = 48,
+    width,
+    height,
     animationType,
     animationDuration = 0.5,
     animationDelay = 0,
-}: EmojiProps) => {
+}: EmojiProps & { width?: number | string; height?: number }) => {
     const { connectors: { connect, drag }, actions: { setProp }, top, left, selected } = useNode((state) => ({
         selected: state.events.selected,
         top: state.data.props.top || 0,
@@ -37,6 +39,8 @@ export const UserEmoji = ({
             ref={(ref: any) => connect(drag(ref))}
             style={{
                 display: "inline-block",
+                width: typeof width === "number" ? `${width}px` : undefined,
+                height: typeof height === "number" ? `${height}px` : undefined,
                 ...itemStyle,
             }}
             className={selected ? "ring-2 ring-blue-400 ring-offset-2 rounded" : ""}
@@ -97,6 +101,10 @@ const EmojiSettings = () => {
     props: {
         emoji: "😊",
         size: 48,
+        width: undefined,
+        height: undefined,
+        top: 0,
+        left: 0,
         animationType: "none",
         animationDuration: 0.5,
         animationDelay: 0,

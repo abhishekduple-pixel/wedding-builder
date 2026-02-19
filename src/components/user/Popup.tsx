@@ -10,18 +10,18 @@ import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
 import { UserContainer } from "./Container";
 import { UserText } from "./Text";
+import { useCanvasDrag } from "./hooks/useCanvasDrag";
 
 export const PopupSettings = () => {
-    const { actions: { setProp }, triggerText, isOpen, openOnLoad, hideTrigger, width, mode, title, message, position } = useNode((node) => ({
+    const { actions: { setProp }, triggerText, openOnLoad, hideTrigger, width, height, mode, title, message } = useNode((node) => ({
         triggerText: node.data.props.triggerText,
-        isOpen: node.data.props.isOpen,
         openOnLoad: node.data.props.openOnLoad,
         hideTrigger: node.data.props.hideTrigger,
         width: node.data.props.width,
+        height: node.data.props.height,
         mode: node.data.props.mode,
         title: node.data.props.title,
         message: node.data.props.message,
-        position: node.data.props.position,
     }));
 
     return (
@@ -66,31 +66,17 @@ export const PopupSettings = () => {
                 <Label>Popup Width (px)</Label>
                 <Input
                     type="number"
-                    value={parseInt(width) || 500}
-                    onChange={(e) => setProp((props: any) => props.width = `${e.target.value}px`)}
+                    value={typeof width === "number" ? width : parseInt(String(width).replace("px", "")) || 500}
+                    onChange={(e) => setProp((props: any) => props.width = parseInt(e.target.value, 10) || 500)}
                 />
             </div>
 
             <div className="space-y-2">
-                <Label>Position</Label>
-                <select
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                    value={position || "center"}
-                    onChange={(e) => setProp((props: any) => props.position = e.target.value)}
-                >
-                    <option value="center">Center</option>
-                    <option value="top-left">Top Left</option>
-                    <option value="top-right">Top Right</option>
-                    <option value="bottom-left">Bottom Left</option>
-                    <option value="bottom-right">Bottom Right</option>
-                </select>
-            </div>
-
-            <div className="flex items-center justify-between">
-                <Label>Force Open (Editor)</Label>
-                <Switch
-                    checked={isOpen}
-                    onCheckedChange={(checked) => setProp((props: any) => props.isOpen = checked)}
+                <Label>Popup Height (px)</Label>
+                <Input
+                    type="number"
+                    value={typeof height === "number" ? height : parseInt(String(height).replace("px", "")) || 300}
+                    onChange={(e) => setProp((props: any) => props.height = parseInt(e.target.value, 10) || 300)}
                 />
             </div>
 
@@ -113,7 +99,22 @@ export const PopupSettings = () => {
     );
 };
 
-export const UserPopup = ({ triggerText, isOpen, openOnLoad, hideTrigger, width = "500px", mode = "custom", title, message, position = "center", children }: any) => {
+export const UserPopup = ({
+    triggerText,
+    openOnLoad,
+    hideTrigger,
+    width = 500,
+    height = 300,
+    mode = "custom",
+    title,
+    message,
+    position = "center",
+    top = 0,
+    left = 0,
+    popupViewportTop,
+    popupViewportLeft,
+    children,
+}: any) => {
     const { connectors: { connect, drag }, selected, actions: { setProp } } = useNode((state) => ({
         selected: state.events.selected,
     }));
@@ -122,14 +123,34 @@ export const UserPopup = ({ triggerText, isOpen, openOnLoad, hideTrigger, width 
         enabled: state.options.enabled,
     }));
 
-    // In editor, we rely on the 'isOpen' prop controlled by settings
-    // In preview/live, we rely on internal state (uncontrolled)
+    const { itemStyle } = useCanvasDrag(top, left);
+    const editorBoxRef = React.useRef<HTMLDivElement | null>(null);
+
     const [internalOpen, setInternalOpen] = useState(false);
 
-    // Auto-open on load (only in preview/live mode)
+    // Sync viewport position when in editor so preview shows popup in the exact same screen position
+    React.useEffect(() => {
+        if (!enabled || !editorBoxRef.current) return;
+        const el = editorBoxRef.current;
+        const sync = () => {
+            const rect = el.getBoundingClientRect();
+            setProp((props: any) => {
+                props.popupViewportTop = Math.round(rect.top);
+                props.popupViewportLeft = Math.round(rect.left);
+            });
+        };
+        sync();
+        const raf = requestAnimationFrame(sync);
+        const observer = new ResizeObserver(sync);
+        observer.observe(el);
+        return () => {
+            cancelAnimationFrame(raf);
+            observer.disconnect();
+        };
+    }, [enabled, top, left, width, height, setProp]);
+
     React.useEffect(() => {
         if (!enabled && openOnLoad) {
-            // Small delay to ensure smooth entrance
             const timer = setTimeout(() => setInternalOpen(true), 500);
             return () => clearTimeout(timer);
         } else if (enabled) {
@@ -137,80 +158,77 @@ export const UserPopup = ({ triggerText, isOpen, openOnLoad, hideTrigger, width 
         }
     }, [enabled, openOnLoad]);
 
-    // If enabled (editor mode), use the prop directly. 
-    // If disabled (preview mode), use internal state.
-    const openState = enabled ? isOpen : internalOpen;
+    const openState = enabled ? true : internalOpen;
 
-    const getPositionStyles = () => {
-        switch (position) {
-            case "top-left": return { top: "20px", left: "20px", transform: "none" };
-            case "top-right": return { top: "20px", left: "auto", right: "20px", transform: "none" };
-            case "bottom-left": return { top: "auto", bottom: "20px", left: "20px", transform: "none" };
-            case "bottom-right": return { top: "auto", bottom: "20px", left: "auto", right: "20px", transform: "none" };
-            case "center":
-            default: return { top: "70%", left: "70%", transform: "translate(-50%, -50%)" };
-        }
+    const widthPx = typeof width === "number" ? width : parseInt(String(width).replace("px", ""), 10) || 500;
+    const heightPx = typeof height === "number" ? height : parseInt(String(height).replace("px", ""), 10) || 300;
+
+    const innerContent = mode === "simple" ? (
+        <div className="bg-white p-8 rounded-xl shadow-lg text-center space-y-6 h-full overflow-auto">
+            {title && <h2 className="text-2xl font-serif text-gray-800">{title}</h2>}
+            {message && <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">{message}</p>}
+            <Button onClick={() => enabled ? undefined : setInternalOpen(false)}>Continue</Button>
+        </div>
+    ) : (
+        <Element id="popup_content" is={UserContainer} width="100%" background="#ffffff" borderRadius={12} padding={40} canvas>
+            <UserText text="Popup Content" fontSize={20} textAlign="center" color="#333333" />
+            <UserText text="Drag and drop components here..." fontSize={14} textAlign="center" color="#999999" />
+        </Element>
+    );
+
+    // Editor: render as a canvas box (no Dialog, so no DialogTitle)
+    if (enabled) {
+        return (
+            <div
+                ref={(el: HTMLDivElement | null) => {
+                    editorBoxRef.current = el;
+                    if (el) connect(drag(el));
+                }}
+                className="rounded-xl overflow-hidden border-2 border-gray-200 bg-white shadow-lg"
+                style={{
+                    position: itemStyle.position as any,
+                    top: itemStyle.top,
+                    left: itemStyle.left,
+                    width: widthPx,
+                    height: heightPx,
+                    minWidth: 120,
+                    minHeight: 80,
+                    zIndex: selected ? 100 : 1,
+                    boxSizing: "border-box",
+                }}
+            >
+                <div className="w-full h-full overflow-auto">
+                    {innerContent}
+                </div>
+            </div>
+        );
+    }
+
+    // Preview: use viewport position synced from editor so popup appears in the exact same screen position
+    const previewTop = typeof popupViewportTop === "number" ? popupViewportTop : (typeof top === "number" ? top : 0);
+    const previewLeft = typeof popupViewportLeft === "number" ? popupViewportLeft : (typeof left === "number" ? left : 0);
+    const previewPositionStyles: React.CSSProperties = {
+        position: "fixed",
+        top: `${previewTop}px`,
+        left: `${previewLeft}px`,
+        transform: "none",
     };
 
     return (
-        <div ref={(ref: any) => connect(drag(ref))} className="inline-block">
-            <Dialog
-                open={openState}
-                modal={!enabled}
-                onOpenChange={(val) => {
-                    if (enabled) {
-                        setProp((props: any) => props.isOpen = val);
-                    } else {
-                        setInternalOpen(val);
-                    }
-                }}
-            >
-                {(!hideTrigger || enabled) && (
+        <div className="inline-block">
+            <Dialog open={openState} modal onOpenChange={setInternalOpen}>
+                {!hideTrigger && (
                     <DialogTrigger asChild>
-                        <Button 
-                            variant="outline" 
-                            className={hideTrigger && enabled ? "opacity-50 border-dashed border-red-400" : ""}
-                        >
-                            {triggerText}
-                        </Button>
+                        <Button variant="outline">{triggerText}</Button>
                     </DialogTrigger>
                 )}
-                
-                <DialogContent 
-                    portal={!enabled}
-                    onInteractOutside={(e) => {
-                        if (enabled) e.preventDefault();
-                    }}
-                    className="p-0 border-none shadow-none bg-transparent sm:max-w-none z-9999"
-                    style={{  
-                        width: width, 
-                        maxWidth: "90vw",
-                        ...getPositionStyles()
-                    }}
+                <DialogContent
+                    portal
+                    className="p-0 border-none shadow-none bg-transparent sm:max-w-none z-[9999]"
+                    style={{ width: `${widthPx}px`, maxWidth: "90vw", ...previewPositionStyles }}
                 >
                     <DialogTitle className="sr-only">{title || "Popup Notification"}</DialogTitle>
-                    {mode === "simple" ? (
-                        <div className="bg-white p-8 rounded-xl shadow-lg text-center space-y-6">
-                            {title && <h2 className="text-2xl font-serif text-gray-800">{title}</h2>}
-                            {message && <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">{message}</p>}
-                            <Button onClick={() => enabled ? setProp((props: any) => props.isOpen = false) : setInternalOpen(false)}>Continue</Button>
-                        </div>
-                    ) : (
-                        <Element id="popup_content" is={UserContainer} width="100%" background="#ffffff" borderRadius={12} padding={40} canvas>
-                             <UserText 
-                                text="Popup Content" 
-                                fontSize={20} 
-                                textAlign="center" 
-                                color="#333333"
-                             />
-                             <UserText 
-                                text="Drag and drop components here..." 
-                                fontSize={14} 
-                                textAlign="center" 
-                                color="#999999"
-                             />
-                        </Element>
-                    )}
+                    {innerContent}
                 </DialogContent>
             </Dialog>
         </div>
@@ -221,14 +239,18 @@ UserPopup.craft = {
     displayName: "Popup",
     props: {
         triggerText: "Open Popup",
-        isOpen: false, // Default closed
         openOnLoad: false,
         hideTrigger: false,
-        width: "500px",
+        width: 500,
+        height: 300,
+        top: 0,
+        left: 0,
         mode: "custom",
         title: "Message From Couple",
         message: "Welcome - We're so glad you're here!!\n\nTake a browse through the pages on our wedding website and please complete your RSVP by March 1, 2026. We cannot wait to celebrate with you!\n\nWith love, Rahul and Ashna",
         position: "center",
+        popupViewportTop: undefined,
+        popupViewportLeft: undefined,
     },
     related: {
         settings: PopupSettings,
