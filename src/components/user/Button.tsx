@@ -199,9 +199,10 @@ export const UserButton = ({ text, url, variant, size, padding, margin, width, h
                     backgroundColor: background === "transparent" ? undefined : background,
                     borderRadius: borderRadius ? `${borderRadius}px` : undefined,
                     color: color || undefined,
-                    borderColor: borderColor || undefined,
+                    // Apply border so selected border color is visible (width + style + color)
+                    ...(borderColor ? { borderWidth: 2, borderStyle: "solid" as const, borderColor } : {}),
                     padding: padding ? getSpacing(device === "mobile" ? getResponsiveSpacing(padding, device) : padding) : undefined,
-                    height: "auto", // Allow height to adjust with padding
+                    height: typeof height === "number" ? `${height}px` : "auto",
                     fontSize: responsiveFontSize ? `${responsiveFontSize}px` : undefined,
                 }}
             >

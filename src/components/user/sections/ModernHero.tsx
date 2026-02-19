@@ -97,7 +97,9 @@ export const UserModernHero = ({
     grayscaleSides = true,
     overlayOpacity = 0.2,
     padding = 0,
-    margin = 0
+    margin = 0,
+    width,
+    height,
 }: any) => {
     const { connectors: { connect, drag }, selected } = useNode((state) => ({
         selected: state.events.selected,
@@ -120,11 +122,22 @@ export const UserModernHero = ({
         position: "relative" as const
     };
 
+    const rootStyle: React.CSSProperties = {
+        padding: `${padding}px`,
+        margin: `${margin}px`,
+    };
+    if (width != null) {
+        rootStyle.width = typeof width === "number" ? `${width}px` : width;
+    }
+    if (height != null) {
+        rootStyle.height = typeof height === "number" ? `${height}px` : height;
+    }
+
     return (
         <div 
             ref={(ref: any) => connect(drag(ref))}
-            className={`w-full flex ${isMobile ? "flex-col" : "flex-row"} ${selected ? "ring-2 ring-blue-500" : ""}`}
-            style={{ padding: `${padding}px`, margin: `${margin}px` }}
+            className={`flex ${isMobile ? "flex-col" : "flex-row"} ${selected ? "ring-2 ring-blue-500" : ""}`}
+            style={rootStyle}
         >
             {/* Left Column - Hidden on mobile */}
             {!isMobile && (
@@ -184,7 +197,9 @@ UserModernHero.craft = {
         grayscaleSides: true,
         overlayOpacity: 0.2,
         padding: 0,
-        margin: 0
+        margin: 0,
+        width: "100%",
+        height: undefined,
     },
     related: {
         settings: ModernHeroSettings

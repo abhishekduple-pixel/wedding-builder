@@ -6,8 +6,6 @@ import React from "react";
 import { Slider } from "../ui/slider";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
-import { AlignLeft, AlignCenter, AlignRight, LayoutTemplate, Rows, Columns } from "lucide-react";
 import { cn, getSpacing, getResponsiveSpacing } from "@/lib/utils";
 import { AnimationSection, getAnimationVariants } from "./AnimationSection";
 import { motion } from "framer-motion";
@@ -15,12 +13,8 @@ import { useCanvasDrag } from "./hooks/useCanvasDrag";
 import { useAppContext } from "../editor/AppContext";
 
 export const ContainerSettings = () => {
-  const { actions: { setProp }, background, flexDirection, alignItems, justifyContent, flexWrap, gap, borderRadius, backgroundImage, height, minHeight, width, layoutMode, gridColumns } = useNode((node) => ({
+  const { actions: { setProp }, background, gap, borderRadius, backgroundImage, height, minHeight, width, layoutMode, gridColumns } = useNode((node) => ({
     background: node.data.props.background,
-    flexDirection: node.data.props.flexDirection,
-    alignItems: node.data.props.alignItems,
-    justifyContent: node.data.props.justifyContent,
-    flexWrap: node.data.props.flexWrap,
     gap: node.data.props.gap,
     borderRadius: node.data.props.borderRadius,
     backgroundImage: node.data.props.backgroundImage,
@@ -95,42 +89,6 @@ export const ContainerSettings = () => {
           step={1}
           onValueChange={(val) => setProp((props: any) => props.gap = val[0])}
         />
-      </div>
-
-      <div className="space-y-4 pt-2 border-t mt-4">
-        <div className="space-y-2">
-          <Label>Direction</Label>
-          <ToggleGroup type="single" value={flexDirection || "column"} onValueChange={(val) => val && setProp((props: any) => props.flexDirection = val)}>
-            <ToggleGroupItem value="row"><Columns className="h-4 w-4" /></ToggleGroupItem>
-            <ToggleGroupItem value="column"><Rows className="h-4 w-4" /></ToggleGroupItem>
-          </ToggleGroup>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Wrap Content</Label>
-          <ToggleGroup type="single" value={flexWrap || "nowrap"} onValueChange={(val) => val && setProp((props: any) => props.flexWrap = val)}>
-            <ToggleGroupItem value="nowrap">No Wrap</ToggleGroupItem>
-            <ToggleGroupItem value="wrap">Wrap</ToggleGroupItem>
-          </ToggleGroup>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Align Items</Label>
-          <ToggleGroup type="single" value={alignItems || "flex-start"} onValueChange={(val) => val && setProp((props: any) => props.alignItems = val)}>
-            <ToggleGroupItem value="flex-start"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
-            <ToggleGroupItem value="center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
-            <ToggleGroupItem value="flex-end"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
-          </ToggleGroup>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Justify Content</Label>
-          <ToggleGroup type="single" value={justifyContent || "flex-start"} onValueChange={(val) => val && setProp((props: any) => props.justifyContent = val)}>
-            <ToggleGroupItem value="flex-start"><LayoutTemplate className="h-4 w-4 rotate-180" /></ToggleGroupItem>
-            <ToggleGroupItem value="center"><LayoutTemplate className="h-4 w-4" /></ToggleGroupItem>
-            <ToggleGroupItem value="flex-end"><LayoutTemplate className="h-4 w-4" /></ToggleGroupItem>
-          </ToggleGroup>
-        </div>
       </div>
 
       {/* Dimensions apply to both modes */}
