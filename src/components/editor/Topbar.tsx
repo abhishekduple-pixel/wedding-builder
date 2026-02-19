@@ -1,7 +1,7 @@
 "use client";
 "use no memo";
 
-import { useEditor, Element } from "@craftjs/core";
+import { useEditor } from "@craftjs/core";
 import { ROOT_NODE } from "@craftjs/utils";
 import { Button } from "../ui/button";
 import { Monitor, Play, Redo, Save, Smartphone, Undo, FilePlus, FolderOpen, Trash2 } from "lucide-react";
@@ -32,7 +32,6 @@ interface Template {
 }
 
 import { storage } from "@/utils/storage";
-import { UserContainer } from "../user/Container";
 
 export const Topbar = () => {
     const { actions, query, canUndo, canRedo } = useEditor((state, query) => ({
@@ -244,12 +243,19 @@ export const Topbar = () => {
     };
 
     const handleAddSection = () => {
-        const nodeTree = query.parseReactElement(
-            <Element is={UserContainer} canvas />
-        ).toNodeTree();
-
-        actions.addNodeTree(nodeTree, ROOT_NODE);
-        showToast("Added new section");
+        const rootNode = query.node(ROOT_NODE).get();
+        if (!rootNode) return;
+        const currentMinHeight = rootNode.data.props.minHeight;
+        let currentVh = 100;
+        if (typeof currentMinHeight === "string" && currentMinHeight.endsWith("vh")) {
+            const parsed = parseInt(currentMinHeight.replace("vh", ""), 10);
+            if (!isNaN(parsed)) currentVh = parsed;
+        }
+        const newVh = currentVh + 30;
+        actions.setProp(ROOT_NODE, (props: any) => {
+            props.minHeight = `${newVh}vh`;
+        });
+        showToast(`Section height increased to ${newVh}vh`);
     };
 
     const handleAddPage = async () => {
