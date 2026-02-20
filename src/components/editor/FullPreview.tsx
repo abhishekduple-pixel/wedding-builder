@@ -121,10 +121,10 @@ export const FullPreview = () => {
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2">
+                {/* <Button variant="outline" className="gap-2">
                     <Eye className="h-4 w-4" />
                     Full Preview
-                </Button>
+                </Button> */}
             </DialogTrigger>
             <DialogContent className="max-w-[95vw] w-full h-[95vh] sm:max-w-[95vw] overflow-hidden flex flex-col p-0">
                 <div className="p-4 border-b flex items-center justify-between bg-white shadow-sm z-10">

@@ -138,7 +138,7 @@ export const Toolbox = () => {
                                             <Columns className="h-6 w-6 rotate-90" />
                                             <span className="text-xs">Row</span>
                                         </Button>
-                                        <Button
+                                        {/* <Button
                                             variant="outline"
                                             className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
                                             ref={(ref: any) => connectors.create(
@@ -151,7 +151,7 @@ export const Toolbox = () => {
                                         >
                                             <Columns className="h-6 w-6" />
                                             <span className="text-xs">2 Cols</span>
-                                        </Button>
+                                        </Button> */}
                                         <Button
                                             variant="outline"
                                             className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
