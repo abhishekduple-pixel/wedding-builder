@@ -14,8 +14,16 @@ import { getSpacing, cn } from "@/lib/utils";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 import { useAppContext } from "../editor/AppContext";
 
+const OBJECT_FIT_OPTIONS = [
+    { value: "fill", label: "Fill" },
+    { value: "contain", label: "Contain" },
+    { value: "cover", label: "Cover" },
+    { value: "none", label: "None" },
+    { value: "scale-down", label: "Scale down" },
+] as const;
+
 export const ImageSettings = () => {
-    const { actions: { setProp }, src, width, height, background, borderRadius, minHeight, animationType, animationDuration, animationDelay, align } = useNode((node) => ({
+    const { actions: { setProp }, src, width, height, background, borderRadius, minHeight, animationType, animationDuration, animationDelay, align, objectFit } = useNode((node) => ({
         src: node.data.props.src,
         width: node.data.props.width,
         height: node.data.props.height,
@@ -26,6 +34,7 @@ export const ImageSettings = () => {
         animationDuration: node.data.props.animationDuration,
         animationDelay: node.data.props.animationDelay,
         align: node.data.props.align,
+        objectFit: node.data.props.objectFit,
     }));
 
     return (
@@ -87,6 +96,21 @@ export const ImageSettings = () => {
                 </ToggleGroup>
             </div>
 
+            <div className="space-y-2">
+                <Label>Object fit</Label>
+                <select
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    value={objectFit || "contain"}
+                    onChange={(e) => setProp((props: any) => props.objectFit = e.target.value)}
+                >
+                    {OBJECT_FIT_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
             <div className="space-y-2 pt-4 border-t">
                 <Label>Background Color</Label>
                 <div className="flex gap-2">
@@ -111,7 +135,7 @@ export const ImageSettings = () => {
     );
 };
 
-export const UserImage = ({ src, width, height, padding, margin, background, borderRadius, minHeight, animationType, animationDuration, animationDelay, align, top, left, grayscale }: any): React.JSX.Element => {
+export const UserImage = ({ src, width, height, padding, margin, background, borderRadius, minHeight, animationType, animationDuration, animationDelay, align, top, left, grayscale, objectFit }: any): React.JSX.Element => {
     const { connectors: { connect, drag }, selected, actions: { setProp } } = useNode((state) => ({
         selected: state.events.selected,
     }));
@@ -178,11 +202,11 @@ export const UserImage = ({ src, width, height, padding, margin, background, bor
                     <img
                         src={src}
                         alt="User Image"
-                        className={cn("w-full h-full object-contain", enabled && "pointer-events-none")}
+                        className={cn("w-full h-full", enabled && "pointer-events-none")}
                         style={{
                             borderRadius: `${borderRadius}px`,
                             filter: grayscale ? "grayscale(100%)" : "none",
-                            objectFit: device === "mobile" ? "cover" : "contain",
+                            objectFit: objectFit || "contain",
                         }}
                     />
                 ) : (
@@ -213,6 +237,7 @@ UserImage.craft = {
         top: 0,
         left: 0,
         grayscale: false,
+        objectFit: "contain",
     },
     related: {
         settings: ImageSettings,

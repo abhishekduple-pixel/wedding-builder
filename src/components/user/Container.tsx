@@ -43,7 +43,7 @@ export const ContainerSettings = () => {
         </div>
       </div>
 
-      <div className="space-y-2">
+      {/* <div className="space-y-2">
         <Label>Background Image URL</Label>
         <Input
           value={backgroundImage || ""}
@@ -69,7 +69,7 @@ export const ContainerSettings = () => {
             reader.readAsDataURL(file);
           }}
         />
-      </div>
+      </div> */}
 
       <div className="space-y-2">
         <Label>Border Radius: {borderRadius}px</Label>

@@ -60,11 +60,11 @@ export const Viewport = ({ children }: { children: React.ReactNode }) => {
                         ["--panel-w" as string]: `${PANEL_WIDTH_PX}px`,
                     }}
                 >
-                    {/* Toolbox: hidden in Preview so only canvas is visible */}
+                    {/* Toolbox: in Preview keep space so canvas width stays same; hide visually with invisible */}
                     <div
                         className={cn(
                             "bg-white shrink-0 transition-all h-full flex flex-col overflow-hidden border-r min-h-0",
-                            enabled ? "flex" : "hidden"
+                            enabled ? "flex" : "invisible pointer-events-none"
                         )}
                         style={{ width: TOOLBOX_WIDTH_PX, minWidth: TOOLBOX_WIDTH_PX }}
                     >
@@ -195,11 +195,11 @@ export const Viewport = ({ children }: { children: React.ReactNode }) => {
                         </div>
                     </div>
 
-                    {/* Right panel: hidden in Preview so only canvas is visible */}
+                    {/* Right panel: in Preview keep space so canvas width stays same; hide visually with invisible */}
                     <div
                         className={cn(
                             "bg-white shrink-0 border-l transition-all h-full flex flex-col overflow-hidden",
-                            enabled ? "flex" : "hidden"
+                            enabled ? "flex" : "invisible pointer-events-none"
                         )}
                         style={{ width: PANEL_WIDTH_PX, minWidth: PANEL_WIDTH_PX }}
                     >
