@@ -125,7 +125,7 @@ export const Toolbox = () => {
                                         <Button
                                             variant="outline"
                                             className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
-                                            ref={(ref: any) => connectors.create(ref, <Element is={UserContainer} canvas minHeight="100px" width="100%" />)}
+                                            ref={(ref: any) => connectors.create(ref, <Element is={UserContainer} canvas height="500px" width="100%" layoutMode="canvas" padding={0} />)}
                                         >
                                             <Square className="h-6 w-6" />
                                             <span className="text-xs">Container</span>
@@ -133,7 +133,7 @@ export const Toolbox = () => {
                                         <Button
                                             variant="outline"
                                             className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
-                                            ref={(ref: any) => connectors.create(ref, <Element is={UserContainer} flexDirection="row" flexWrap="wrap" width="100%" gap={0} padding={0} canvas />)}
+                                            ref={(ref: any) => connectors.create(ref, <Element is={UserContainer} flexDirection="row" flexWrap="wrap" width="100%" gap={0} padding={0} layoutMode="canvas" minHeight="300px" canvas />)}
                                         >
                                             <Columns className="h-6 w-6 rotate-90" />
                                             <span className="text-xs">Row</span>
@@ -144,8 +144,8 @@ export const Toolbox = () => {
                                             ref={(ref: any) => connectors.create(
                                                 ref,
                                                 <Element is={UserContainer} flexDirection="row" flexWrap="wrap" width="100%" gap={0} padding={0} canvas>
-                                                    <Element is={UserContainer} width="50%" padding={5} canvas />
-                                                    <Element is={UserContainer} width="50%" padding={5} canvas />
+                                                    <Element is={UserContainer} width="50%" padding={0} layoutMode="canvas" minHeight="200px" canvas />
+                                                    <Element is={UserContainer} width="50%" padding={0} layoutMode="canvas" minHeight="200px" canvas />
                                                 </Element>
                                             )}
                                         >
@@ -158,8 +158,8 @@ export const Toolbox = () => {
                                             ref={(ref: any) => connectors.create(
                                                 ref,
                                                 <Element is={UserContainer} layoutMode="grid" gridColumns={2} gap={20} width="100%" padding={20} canvas>
-                                                    <Element is={UserContainer} width="100%" padding={20} canvas />
-                                                    <Element is={UserContainer} width="100%" padding={20} canvas />
+                                                    <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="120px" canvas />
+                                                    <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="120px" canvas />
                                                 </Element>
                                             )}
                                         >
@@ -172,10 +172,10 @@ export const Toolbox = () => {
                                             ref={(ref: any) => connectors.create(
                                                 ref,
                                                 <Element is={UserContainer} layoutMode="grid" gridColumns={4} gap={20} width="100%" padding={20} canvas>
-                                                    <Element is={UserContainer} width="100%" padding={20} canvas />
-                                                    <Element is={UserContainer} width="100%" padding={20} canvas />
-                                                    <Element is={UserContainer} width="100%" padding={20} canvas />
-                                                    <Element is={UserContainer} width="100%" padding={20} canvas />
+                                                    <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="100px" canvas />
+                                                    <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="100px" canvas />
+                                                    <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="100px" canvas />
+                                                    <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="100px" canvas />
                                                 </Element>
                                             )}
                                         >
@@ -188,12 +188,12 @@ export const Toolbox = () => {
                                             ref={(ref: any) => connectors.create(
                                                 ref,
                                                 <Element is={UserContainer} layoutMode="grid" gridColumns={6} gap={20} width="100%" padding={20} canvas>
-                                                    <Element is={UserContainer} width="100%" padding={20} canvas />
-                                                    <Element is={UserContainer} width="100%" padding={20} canvas />
-                                                    <Element is={UserContainer} width="100%" padding={20} canvas />
-                                                    <Element is={UserContainer} width="100%" padding={20} canvas />
-                                                    <Element is={UserContainer} width="100%" padding={20} canvas />
-                                                    <Element is={UserContainer} width="100%" padding={20} canvas />
+                                                    <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="80px" canvas />
+                                                    <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="80px" canvas />
+                                                    <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="80px" canvas />
+                                                    <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="80px" canvas />
+                                                    <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="80px" canvas />
+                                                    <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="80px" canvas />
                                                 </Element>
                                             )}
                                         >

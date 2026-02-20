@@ -5,14 +5,19 @@ import { useNode } from "@craftjs/core";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
+import { Button } from "../ui/button";
+import { Plus, Trash2 } from "lucide-react";
+import { useCanvasDrag } from "./hooks/useCanvasDrag";
+import { useAppContext } from "../editor/AppContext";
 
 interface ChartProps {
     type?: "bar" | "line" | "pie";
     data?: any[];
-    width?: string;
-    height?: number;
+    width?: number | string;
+    height?: number | string;
     color?: string;
+    top?: number;
+    left?: number;
 }
 
 const DEFAULT_DATA = [
@@ -27,11 +32,19 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 export const UserChart = ({
     type = "bar",
     data = DEFAULT_DATA,
-    width = "100%",
+    width = 400,
     height = 300,
-    color = "#8884d8"
+    color = "#8884d8",
+    top = 0,
+    left = 0,
 }: ChartProps) => {
     const { connectors: { connect, drag } } = useNode();
+    const { itemStyle } = useCanvasDrag(top, left);
+    const { device } = useAppContext();
+
+    const resolvedWidth = typeof width === "number" ? `${width}px` : width;
+    const resolvedHeight = typeof height === "number" ? `${height}px` : height;
+    const positionStyle = device === "mobile" ? { position: "relative" as const, top: 0, left: 0 } : itemStyle;
 
     const renderChart = () => {
         switch (type) {
@@ -84,7 +97,12 @@ export const UserChart = ({
     return (
         <div
             ref={(ref: any) => connect(drag(ref))}
-            style={{ width, height: `${height}px` }}
+            style={{
+                ...positionStyle,
+                width: resolvedWidth,
+                height: resolvedHeight,
+                minHeight: typeof height === "number" ? `${height}px` : 120,
+            }}
         >
             <ResponsiveContainer width="100%" height="100%">
                 {renderChart()}
@@ -92,6 +110,8 @@ export const UserChart = ({
         </div>
     );
 };
+
+type DataItem = { name: string; value: number };
 
 const ChartSettings = () => {
     const { actions: { setProp }, type, data, color, height } = useNode((node) => ({
@@ -101,13 +121,37 @@ const ChartSettings = () => {
         height: node.data.props.height,
     }));
 
-    const handleDataChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        try {
-            const parsed = JSON.parse(e.target.value);
-            setProp((props: any) => props.data = parsed);
-        } catch (error) {
-            // ignore invalid json while typing
-        }
+    const rows: DataItem[] = Array.isArray(data) && data.length > 0
+        ? data.map((item: any) => ({
+            name: typeof item?.name === "string" ? item.name : String(item?.name ?? ""),
+            value: typeof item?.value === "number" && !Number.isNaN(item.value) ? item.value : Number(item?.value) || 0,
+        }))
+        : [{ name: "", value: 0 }];
+
+    const setRow = (index: number, field: "name" | "value", value: string | number) => {
+        setProp((props: any) => {
+            const next = [...(Array.isArray(props.data) ? props.data : []).map((r: any) => ({ name: String(r?.name ?? ""), value: Number(r?.value) || 0 }))];
+            while (next.length <= index) next.push({ name: "", value: 0 });
+            if (field === "name") next[index] = { ...next[index], name: String(value) };
+            else next[index] = { ...next[index], value: Number(value) || 0 };
+            props.data = next;
+        });
+    };
+
+    const addRow = () => {
+        setProp((props: any) => {
+            const prev = (Array.isArray(props.data) ? props.data : []).map((r: any) => ({ name: String(r?.name ?? ""), value: Number(r?.value) || 0 }));
+            const next = [...prev, { name: "", value: 0 }];
+            props.data = next;
+        });
+    };
+
+    const removeRow = (index: number) => {
+        if (rows.length <= 1) return;
+        setProp((props: any) => {
+            const next = (Array.isArray(props.data) ? props.data : []).filter((_: any, i: number) => i !== index);
+            props.data = next.length ? next : [{ name: "", value: 0 }];
+        });
     };
 
     return (
@@ -135,16 +179,44 @@ const ChartSettings = () => {
 
             <div className="space-y-2">
                 <Label>Height</Label>
-                <Input type="number" value={height} onChange={(e) => setProp((props: any) => props.height = parseInt(e.target.value))} />
+                <Input type="number" value={typeof height === "number" ? height : 300} onChange={(e) => setProp((props: any) => props.height = parseInt(e.target.value, 10) || 300)} />
             </div>
 
             <div className="space-y-2">
-                <Label>Data (JSON)</Label>
-                <Textarea
-                    className="font-mono text-xs h-32"
-                    defaultValue={JSON.stringify(data, null, 2)}
-                    onChange={handleDataChange}
-                />
+                <div className="flex items-center justify-between">
+                    <Label>Chart data</Label>
+                    <Button type="button" variant="outline" size="icon" className="h-8 w-8" onClick={addRow} title="Add row">
+                        <Plus className="h-4 w-4" />
+                    </Button>
+                </div>
+                <div className="border rounded-md overflow-hidden max-h-[240px] overflow-y-auto">
+                    <div className="grid grid-cols-[1fr_80px_28px] gap-1 p-2 bg-muted/50 sticky top-0 z-10 text-xs font-medium">
+                        <span>Label</span>
+                        <span>Value</span>
+                        <span />
+                    </div>
+                    {rows.map((row: DataItem, index: number) => (
+                        <div key={index} className="grid grid-cols-[1fr_80px_28px] gap-1 p-2 border-t items-center">
+                            <Input
+                                className="h-8 text-xs"
+                                placeholder="e.g. Jan"
+                                value={row.name}
+                                onChange={(e) => setRow(index, "name", e.target.value)}
+                            />
+                            <Input
+                                type="number"
+                                className="h-8 text-xs"
+                                placeholder="0"
+                                value={row.value}
+                                onChange={(e) => setRow(index, "value", e.target.value)}
+                            />
+                            <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeRow(index)} title="Remove row">
+                                <Trash2 className="h-3 w-3" />
+                            </Button>
+                        </div>
+                    ))}
+                </div>
+                <p className="text-xs text-muted-foreground">Label = axis/slice name, Value = number. Add rows with +.</p>
             </div>
         </div>
     );
@@ -155,9 +227,11 @@ const ChartSettings = () => {
     props: {
         type: "bar",
         data: DEFAULT_DATA,
-        width: "100%",
+        width: 400,
         height: 300,
-        color: "#8884d8"
+        color: "#8884d8",
+        top: 0,
+        left: 0,
     },
     related: {
         settings: ChartSettings,

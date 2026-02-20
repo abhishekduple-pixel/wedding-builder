@@ -233,7 +233,7 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
         device === "mobile" && !enabled
           ? "border-0" // No borders on mobile in preview mode
           : selected
-            ? "border-2 border-blue-500 border-dashed shadow-sm"
+            ? "border-2 border-transparent shadow-sm" // Selection outline comes from RenderNode only; avoids double border + dotted persistence
             : showVisualIndicators
               ? "border border-blue-200 border-dashed hover:border-blue-400 hover:shadow-sm"
               : "border border-transparent hover:border-gray-300 hover:border-dashed"
@@ -250,6 +250,7 @@ export const UserContainer = ({ children, background, padding, margin, flexDirec
 
 UserContainer.craft = {
   displayName: "Container",
+  isCanvas: true, // Ensures toolbox-dropped containers are canvas nodes so their children are draggable (Craft.js isDraggable() requires parent.isCanvas())
   props: {
     background: "transparent",
     padding: 20,

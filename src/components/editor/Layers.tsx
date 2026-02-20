@@ -13,6 +13,7 @@ export const Layers = () => {
 
     const handleSelect = (id: string) => {
         actions.selectNode(id);
+        (actions as any).setNodeEvent?.("hovered", null);
     };
 
     const getIcon = (displayName: string) => {

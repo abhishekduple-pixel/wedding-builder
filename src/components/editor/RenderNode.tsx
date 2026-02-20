@@ -9,8 +9,9 @@ import { Move, ArrowUp, Trash2 } from "lucide-react";
 
 export const RenderNode = ({ render }: { render: React.ReactNode }) => {
     const { id } = useNode();
-    const { actions, query, isActive } = useEditor((state, query) => ({
+    const { actions, query, isActive, enabled } = useEditor((state, query) => ({
         isActive: query.getEvent("selected").contains(id),
+        enabled: state.options.enabled,
     }));
 
     const {
@@ -22,6 +23,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         connectors: {},
         parent,
         props,
+        childIds,
     } = useNode((node) => ({
         isHovered: node.events.hovered,
         dom: node.dom,
@@ -30,6 +32,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         deletable: query.node(node.id).isDeletable(),
         parent: node.data.parent,
         props: node.data.props,
+        childIds: [...(node.data?.nodes || []), ...Object.values(node.data?.linkedNodes || {})],
     }));
 
     // Sync width/height/top/left when DOM changes or is active
@@ -80,9 +83,12 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
 
         if (props.positionType !== "absolute" && dom && parent) {
             const parentNode = query.node(parent).get();
-            const parentDom = parentNode?.dom;
-            if (parentDom) {
-                const parentRect = parentDom.getBoundingClientRect();
+            let parentDomForRect = parentNode?.dom;
+            if (!parentDomForRect && parent === ROOT_NODE) {
+                parentDomForRect = document.querySelector(".editor-canvas-root") as HTMLElement | null;
+            }
+            if (parentDomForRect) {
+                const parentRect = parentDomForRect.getBoundingClientRect();
                 const childRect = dom.getBoundingClientRect();
                 startTop = childRect.top - parentRect.top;
                 startLeft = childRect.left - parentRect.left;
@@ -99,7 +105,11 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         if (!parent) return;
         const parentNode = query.node(parent).get();
         if (!parentNode) return;
-        const parentDom = parentNode.dom;
+        let parentDom = parentNode.dom;
+        // When the parent is the root container, its dom may not be set in the store yet; use the canvas root as fallback so move works in the main container
+        if (!parentDom && parent === ROOT_NODE) {
+            parentDom = document.querySelector(".editor-canvas-root") as HTMLElement | null;
+        }
         if (!parentDom) return;
 
         const parentWidth = parentDom.clientWidth;
@@ -135,15 +145,28 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
 
     const startFreeMoveRef = useRef(startFreeMove);
     startFreeMoveRef.current = startFreeMove;
+    const childIdsRef = useRef<string[]>(childIds);
+    childIdsRef.current = childIds;
 
     useEffect(() => {
         if (!dom || !moveable) return;
 
         const onCanvasPointerDown = (event: PointerEvent) => {
             if (!dom.contains(event.target as Node)) return;
+            // Don't steal selection from child nodes: if the click is inside a child node's DOM, let the child handle it.
+            // Exception: children with disableVisuals (e.g. Image's drop overlay) are passthrough - treat the click as on this node so canvas move works.
+            const isClickOnRealChild = childIdsRef.current.some((childId: string) => {
+                const childNode = query.node(childId).get();
+                if (!childNode?.dom?.contains(event.target as Node)) return false;
+                const isPassthroughOverlay = childNode.data?.props?.disableVisuals === true;
+                return !isPassthroughOverlay; // only "real" children steal the click
+            });
+            if (isClickOnRealChild) return;
             event.preventDefault();
             event.stopPropagation();
             actions.selectNode(id);
+            // Clear hover so the blue dotted outline disappears on selection (avoids persistent hover on containers/siblings)
+            (actions as any).setNodeEvent?.("hovered", null);
             startFreeMoveRef.current(event);
         };
 
@@ -152,7 +175,7 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
         return () => {
             dom.removeEventListener("pointerdown", onCanvasPointerDown, true);
         };
-    }, [dom, moveable]);
+    }, [dom, moveable, enabled]);
 
     // Resizing Logic using standard Pointer Events
     const handleResizeStart = (e: React.PointerEvent, direction: string) => {
@@ -163,7 +186,10 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
 
         const parentNode = query.node(parent).get();
         if (!parentNode) return;
-        const parentDom = parentNode.dom;
+        let parentDom = parentNode.dom;
+        if (!parentDom && parent === ROOT_NODE) {
+            parentDom = document.querySelector(".editor-canvas-root") as HTMLElement | null;
+        }
         if (!parentDom) return;
 
         const startX = e.clientX;
@@ -241,6 +267,11 @@ export const RenderNode = ({ render }: { render: React.ReactNode }) => {
             }
         }
     }, [dom, isActive, isHovered]);
+
+    // In Preview (enabled=false), no selection overlay, toolbar, or resize handles — view only
+    if (!enabled) {
+        return <>{render}</>;
+    }
 
     return (
         <>

@@ -127,27 +127,7 @@ export const UserPopup = ({
     const editorBoxRef = React.useRef<HTMLDivElement | null>(null);
 
     const [internalOpen, setInternalOpen] = useState(false);
-
-    // Sync viewport position when in editor so preview shows popup in the exact same screen position
-    React.useEffect(() => {
-        if (!enabled || !editorBoxRef.current) return;
-        const el = editorBoxRef.current;
-        const sync = () => {
-            const rect = el.getBoundingClientRect();
-            setProp((props: any) => {
-                props.popupViewportTop = Math.round(rect.top);
-                props.popupViewportLeft = Math.round(rect.left);
-            });
-        };
-        sync();
-        const raf = requestAnimationFrame(sync);
-        const observer = new ResizeObserver(sync);
-        observer.observe(el);
-        return () => {
-            cancelAnimationFrame(raf);
-            observer.disconnect();
-        };
-    }, [enabled, top, left, width, height, setProp]);
+    const [previewPosition, setPreviewPosition] = useState<{ top: number; left: number } | null>(null);
 
     React.useEffect(() => {
         if (!enabled && openOnLoad) {
@@ -157,6 +137,29 @@ export const UserPopup = ({
             setInternalOpen(false);
         }
     }, [enabled, openOnLoad]);
+
+    // In preview, compute fixed position from canvas + node top/left so popup stays where user placed it
+    const topPx = typeof top === "number" ? top : 0;
+    const leftPx = typeof left === "number" ? left : 0;
+    React.useEffect(() => {
+        if (enabled) return;
+        const update = () => {
+            const canvas = document.querySelector(".editor-canvas-root") as HTMLElement | null;
+            if (canvas) {
+                const r = canvas.getBoundingClientRect();
+                setPreviewPosition({ top: r.top + topPx, left: r.left + leftPx });
+            } else {
+                setPreviewPosition(null);
+            }
+        };
+        update();
+        window.addEventListener("scroll", update, true);
+        window.addEventListener("resize", update);
+        return () => {
+            window.removeEventListener("scroll", update, true);
+            window.removeEventListener("resize", update);
+        };
+    }, [enabled, topPx, leftPx]);
 
     const openState = enabled ? true : internalOpen;
 
@@ -204,15 +207,21 @@ export const UserPopup = ({
         );
     }
 
-    // Preview: use viewport position synced from editor so popup appears in the exact same screen position
-    const previewTop = typeof popupViewportTop === "number" ? popupViewportTop : (typeof top === "number" ? top : 0);
-    const previewLeft = typeof popupViewportLeft === "number" ? popupViewportLeft : (typeof left === "number" ? left : 0);
-    const previewPositionStyles: React.CSSProperties = {
-        position: "fixed",
-        top: `${previewTop}px`,
-        left: `${previewLeft}px`,
-        transform: "none",
-    };
+    // Preview: use same position as editor (canvas-relative top/left) so popup stays where user placed it
+    const previewPositionStyles: React.CSSProperties =
+        previewPosition != null
+            ? {
+                  position: "fixed",
+                  top: `${previewPosition.top}px`,
+                  left: `${previewPosition.left}px`,
+                  transform: "none",
+              }
+            : {
+                  position: "fixed",
+                  left: "50%",
+                  top: "50%",
+                  transform: "translate(-50%, -50%)",
+              };
 
     return (
         <div className="inline-block">

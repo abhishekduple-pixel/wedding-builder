@@ -26,6 +26,9 @@ export const Viewport = ({ children }: { children: React.ReactNode }) => {
     const isMobile = device === "mobile";
     const MOBILE_WIDTH = 375;
     const DESKTOP_MAX_WIDTH = 1024;
+    // Fixed panel widths so center = total - TOOLBOX_WIDTH - PANEL_WIDTH (no overlap at any viewport)
+    const TOOLBOX_WIDTH_PX = 256;   // w-64
+    const PANEL_WIDTH_PX = 320;    // w-80
 
     const [pages, setPages] = useState<PageMeta[]>([]);
     const [currentPageId, setCurrentPageId] = useState<string | null>(null);
@@ -49,15 +52,36 @@ export const Viewport = ({ children }: { children: React.ReactNode }) => {
             />
             <div className="flex flex-col h-screen overflow-hidden bg-gray-100">
                 <Topbar />
-                <div className="flex flex-1 overflow-hidden">
-                    <div className={cn("w-64 bg-white shrink-0 transition-all h-full flex flex-col overflow-hidden border-r min-h-0", enabled ? "opacity-100" : "opacity-50 pointer-events-none")}>
+                <div
+                    className="flex flex-1 min-w-0 overflow-hidden"
+                    style={{
+                        // Center gets exactly (100% - toolbox - panel); prevents right panel overlapping canvas at any viewport
+                        ["--toolbox-w" as string]: `${TOOLBOX_WIDTH_PX}px`,
+                        ["--panel-w" as string]: `${PANEL_WIDTH_PX}px`,
+                    }}
+                >
+                    {/* Toolbox: hidden in Preview so only canvas is visible */}
+                    <div
+                        className={cn(
+                            "bg-white shrink-0 transition-all h-full flex flex-col overflow-hidden border-r min-h-0",
+                            enabled ? "flex" : "hidden"
+                        )}
+                        style={{ width: TOOLBOX_WIDTH_PX, minWidth: TOOLBOX_WIDTH_PX }}
+                    >
                         <Toolbox />
                     </div>
 
-                    <div className={cn(
-                        "flex-1 overflow-y-scroll overflow-x-hidden relative flex flex-col craftjs-renderer",
-                        isMobile ? "p-0 justify-center" : "p-8 items-center"
-                    )}>
+                    <div
+                        className={cn(
+                            "min-w-0 overflow-y-auto overflow-x-hidden relative flex flex-col craftjs-renderer",
+                            isMobile ? "p-0 justify-center" : "p-8 items-center"
+                        )}
+                        style={{
+                            // Center = remaining width; flex-1 + min-w-0 ensures it shrinks and never overlaps right panel
+                            flex: "1 1 0%",
+                            width: "0%",
+                        }}
+                    >
                         <div
                             className={cn(
                                 "bg-white shadow-lg transition-all duration-300 origin-top relative editor-canvas-root",
@@ -81,6 +105,7 @@ export const Viewport = ({ children }: { children: React.ReactNode }) => {
                                 if (e.target === e.currentTarget) {
                                     if (enabled) {
                                         actions.selectNode(undefined);
+                                        (actions as any).setNodeEvent?.("hovered", null);
                                     }
                                 }
                             }}
@@ -170,7 +195,14 @@ export const Viewport = ({ children }: { children: React.ReactNode }) => {
                         </div>
                     </div>
 
-                    <div className={cn("w-80 bg-white shrink-0 border-l transition-all h-full flex flex-col overflow-hidden", enabled ? "translate-x-0" : "translate-x-full hidden")}>
+                    {/* Right panel: hidden in Preview so only canvas is visible */}
+                    <div
+                        className={cn(
+                            "bg-white shrink-0 border-l transition-all h-full flex flex-col overflow-hidden",
+                            enabled ? "flex" : "hidden"
+                        )}
+                        style={{ width: PANEL_WIDTH_PX, minWidth: PANEL_WIDTH_PX }}
+                    >
                         <SettingsPanel />
                     </div>
                 </div>

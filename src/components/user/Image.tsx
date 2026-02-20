@@ -1,41 +1,32 @@
 "use client";
 "use no memo";
 
-import { useNode, useEditor, Element } from "@craftjs/core";
+import { useNode, useEditor } from "@craftjs/core";
 import React from "react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { Slider } from "../ui/slider";
+import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
+import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 import { AnimationSection, getAnimationVariants } from "./AnimationSection";
 import { motion } from "framer-motion";
-import { getSpacing, getResponsiveSpacing } from "@/lib/utils";
-import { UserContainer } from "./Container";
+import { StylesPanel } from "../editor/properties/StylesPanel";
+import { getSpacing, cn } from "@/lib/utils";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 import { useAppContext } from "../editor/AppContext";
 
 export const ImageSettings = () => {
-    const { actions: { setProp }, src, sourceType, fileName, background } = useNode((node) => ({
+    const { actions: { setProp }, src, width, height, background, borderRadius, minHeight, animationType, animationDuration, animationDelay, align } = useNode((node) => ({
         src: node.data.props.src,
-        sourceType: node.data.props.sourceType,
-        fileName: node.data.props.fileName,
+        width: node.data.props.width,
+        height: node.data.props.height,
         background: node.data.props.background,
+        borderRadius: node.data.props.borderRadius,
+        minHeight: node.data.props.minHeight,
+        animationType: node.data.props.animationType,
+        animationDuration: node.data.props.animationDuration,
+        animationDelay: node.data.props.animationDelay,
+        align: node.data.props.align,
     }));
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        // Revoke previous blob URL to prevent memory leak
-        if (typeof src === "string" && src.startsWith("blob:")) {
-            URL.revokeObjectURL(src);
-        }
-        const objectUrl = URL.createObjectURL(file);
-        setProp((props: any) => {
-            props.src = objectUrl;
-            props.sourceType = "upload";
-            props.fileName = file.name;
-        });
-    };
 
     return (
         <div className="space-y-4">
@@ -43,27 +34,23 @@ export const ImageSettings = () => {
                 <Label>Image URL</Label>
                 {(() => {
                     const isUpload =
-                        sourceType === "upload" ||
-                        (typeof src === "string" &&
-                            (src.startsWith("blob:") || src.startsWith("data:")));
+                        typeof src === "string" &&
+                        (src.startsWith("blob:") || src.startsWith("data:"));
 
                     return (
                         <>
                             <Input
                                 value={isUpload ? "" : (src || "")}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setProp((props: any) => {
-                                        props.src = value;
-                                        props.sourceType = "url";
-                                        props.fileName = "";
-                                    });
-                                }}
                                 placeholder="https://..."
+                                onChange={(e) =>
+                                    setProp((props: any) => {
+                                        props.src = e.target.value;
+                                    })
+                                }
                             />
                             {isUpload && (
                                 <p className="text-[10px] text-gray-400">
-                                    Using uploaded image{fileName ? ` (${fileName})` : ""}. Enter a URL to replace it.
+                                    Using uploaded image. Enter a URL to replace it.
                                 </p>
                             )}
                         </>
@@ -76,8 +63,28 @@ export const ImageSettings = () => {
                 <Input
                     type="file"
                     accept="image/*"
-                    onChange={handleFileChange}
+                    onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        // Revoke previous blob URL to prevent memory leak
+                        if (typeof src === "string" && src.startsWith("blob:")) {
+                            URL.revokeObjectURL(src);
+                        }
+                        const objectUrl = URL.createObjectURL(file);
+                        setProp((props: any) => {
+                            props.src = objectUrl;
+                        });
+                    }}
                 />
+            </div>
+
+            <div className="space-y-2">
+                <Label>Alignment</Label>
+                <ToggleGroup type="single" value={align || "center"} onValueChange={(val) => val && setProp((props: any) => props.align = val)}>
+                    <ToggleGroupItem value="left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
+                    <ToggleGroupItem value="center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
+                    <ToggleGroupItem value="right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
+                </ToggleGroup>
             </div>
 
             <div className="space-y-2 pt-4 border-t">
@@ -97,34 +104,46 @@ export const ImageSettings = () => {
                     />
                 </div>
             </div>
+
+            <StylesPanel />
+            <AnimationSection />
         </div>
     );
 };
 
-export const UserImage = ({ src, width, height, borderRadius, padding, margin, background, minHeight, align, top, left, animationType, animationDuration, animationDelay, positionType, children, layoutMode, grayscale }: any) => {
+export const UserImage = ({ src, width, height, padding, margin, background, borderRadius, minHeight, animationType, animationDuration, animationDelay, align, top, left, grayscale }: any): React.JSX.Element => {
     const { connectors: { connect, drag }, selected, actions: { setProp } } = useNode((state) => ({
         selected: state.events.selected,
     }));
 
-    const { isDragging } = useEditor((state) => ({
-        isDragging: !!state.events.dragged
+    const { enabled } = useEditor((state) => ({
+        enabled: state.options.enabled
     }));
 
     const { device } = useAppContext();
-    const isMobile = device === "mobile";
 
-    // Access parent node to check if it's a "canvas" container
-    const { isCanvas, itemStyle } = useCanvasDrag(top, left);
+    const { itemStyle } = useCanvasDrag(top, left);
 
-    // Enable free movement if parent is Canvas OR user explicitly selected "Free Movement" (absolute)
-    const isFree = isCanvas || positionType === "absolute";
+    // Adjust width for mobile - ensure it doesn't exceed container (mirror Video)
+    const responsiveWidth = device === "mobile" && width && typeof width === "string" && width.includes("px")
+        ? "100%"
+        : (typeof width === 'number' ? `${width}px` : (width || "100%"));
 
     const variants = getAnimationVariants(animationType, animationDuration, animationDelay);
 
-    // On mobile, force 100% width and constrain properly
-    const responsiveWidth = device === "mobile" 
-        ? "100%" 
-        : (typeof width === 'number' ? `${width}px` : (width || "100%"));
+    const isImageUrl = !!src && (
+        typeof src === "string" &&
+        (src.startsWith("http") || src.startsWith("data:") || src.startsWith("blob:") || src.startsWith("/"))
+    );
+
+    const getJustifyContent = () => {
+        switch (align) {
+            case "left": return "flex-start";
+            case "right": return "flex-end";
+            case "center":
+            default: return "center";
+        }
+    };
 
     return (
         <motion.div
@@ -134,58 +153,44 @@ export const UserImage = ({ src, width, height, borderRadius, padding, margin, b
                 maxWidth: device === "mobile" ? "100%" : undefined,
                 height: typeof height === 'number' ? `${height}px` : (height || "auto"),
                 minHeight: typeof minHeight === 'number' ? `${minHeight}px` : (minHeight || "auto"),
-                position: device === "mobile" ? "relative" : (isFree ? "absolute" : "relative"),
-                ...(device === "mobile" ? { top: 0, left: 0 } : itemStyle),
-                zIndex: selected ? 100 : 1,
-                display: "flex",
-                alignSelf: align === "center" ? "center" : align === "right" ? "flex-end" : "flex-start",
-                padding: getSpacing(device === "mobile" ? getResponsiveSpacing(padding, device) : padding),
-                margin: getSpacing(device === "mobile" ? getResponsiveSpacing(margin, device) : margin),
+                padding: getSpacing(padding),
+                margin: getSpacing(margin),
                 backgroundColor: background,
                 borderRadius: `${borderRadius}px`,
-                overflow: "hidden", // Prevent image overflow
+                display: "flex",
+                justifyContent: getJustifyContent(),
+                alignSelf: getJustifyContent(),
+                zIndex: selected ? 100 : 0, // 0 when not selected so text (z-index 1) always stacks on top, matching Video + text
+                ...(device === "mobile" ? { position: "relative", top: 0, left: 0 } : itemStyle),
             }}
             initial="initial"
             animate="animate"
             variants={variants as any}
         >
-            <img
-                src={src}
-                style={{
-                    width: "100%",
-                    maxWidth: "100%",
-                    height: "auto",
-                    display: "block",
-                    borderRadius: `${borderRadius}px`,
-                    filter: grayscale ? "grayscale(100%)" : "none",
-                    objectFit: device === "mobile" ? "cover" : "contain", // Use cover on mobile for better display
-                }}
-                alt="User Image"
-            />
-
-            {/* Overlay Container for Drop Zone - Hidden on mobile to prevent white lines */}
-            {!isMobile && (
-                <div style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    pointerEvents: "auto"
-                }}>
-                    <Element
-                        id="image_overlay"
-                        is={UserContainer}
-                        canvas
-                        layoutMode="canvas"
-                        padding={20}
-                        background="transparent"
-                        width="100%"
-                        minHeight="100%"
-                        disableVisuals
+            <div style={{
+                width: "100%",
+                height: "100%",
+                maxWidth: device === "mobile" ? "100%" : (responsiveWidth === "100%" ? "100%" : responsiveWidth),
+                overflow: "hidden",
+                borderRadius: `${borderRadius}px`,
+            }}>
+                {isImageUrl ? (
+                    <img
+                        src={src}
+                        alt="User Image"
+                        className={cn("w-full h-full object-contain", enabled && "pointer-events-none")}
+                        style={{
+                            borderRadius: `${borderRadius}px`,
+                            filter: grayscale ? "grayscale(100%)" : "none",
+                            objectFit: device === "mobile" ? "cover" : "contain",
+                        }}
                     />
-                </div>
-            )}
+                ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 min-h-[200px] rounded-md">
+                        Enter an Image URL or upload an image
+                    </div>
+                )}
+            </div>
         </motion.div>
     );
 };
@@ -193,9 +198,7 @@ export const UserImage = ({ src, width, height, borderRadius, padding, margin, b
 UserImage.craft = {
     displayName: "Image",
     props: {
-        src: "https://placehold.co/600x400",
-        sourceType: "url",
-        fileName: "",
+        src: "",
         width: "400px",
         height: "300px",
         padding: 0,
@@ -206,10 +209,10 @@ UserImage.craft = {
         animationType: "none",
         animationDuration: 0.5,
         animationDelay: 0,
-        align: "left",
+        align: "center",
         top: 0,
         left: 0,
-        positionType: "relative", // Default to relative (flow)
+        grayscale: false,
     },
     related: {
         settings: ImageSettings,
