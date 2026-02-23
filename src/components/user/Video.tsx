@@ -200,6 +200,7 @@ export const UserVideo = ({ url, width, height, padding, margin, background, bor
                 display: "flex",
                 justifyContent: getJustifyContent(),
                 alignSelf: getJustifyContent(),
+                zIndex: 0, // Keep media below text (z-index 1) when selected, consistent with Image
                 ...(device === "mobile" ? { position: "relative", top: 0, left: 0 } : itemStyle),
             }}
             initial="initial"

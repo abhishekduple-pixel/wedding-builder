@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { StylesPanel } from "@/components/editor/properties/StylesPanel";
 import { useAppContext } from "../../editor/AppContext";
+import { useCanvasDrag } from "../hooks/useCanvasDrag";
 
 export const ModernHeroSettings = () => {
     const { actions: { setProp }, imageLeft, imageCenter, imageRight, grayscaleSides, overlayOpacity } = useNode((node) => ({
@@ -100,6 +101,8 @@ export const UserModernHero = ({
     margin = 0,
     width,
     height,
+    top = 0,
+    left = 0,
 }: any) => {
     const { connectors: { connect, drag }, selected } = useNode((state) => ({
         selected: state.events.selected,
@@ -107,6 +110,8 @@ export const UserModernHero = ({
 
     const { device } = useAppContext();
     const isMobile = device === "mobile";
+
+    const { itemStyle } = useCanvasDrag(top, left);
 
     const sideStyle = {
         backgroundSize: "cover",
@@ -137,7 +142,7 @@ export const UserModernHero = ({
         <div 
             ref={(ref: any) => connect(drag(ref))}
             className={`flex ${isMobile ? "flex-col" : "flex-row"} ${selected ? "ring-2 ring-blue-500" : ""}`}
-            style={rootStyle}
+            style={{ ...rootStyle, ...itemStyle }}
         >
             {/* Left Column - Hidden on mobile */}
             {!isMobile && (
@@ -200,6 +205,8 @@ UserModernHero.craft = {
         margin: 0,
         width: "100%",
         height: undefined,
+        top: 0,
+        left: 0,
     },
     related: {
         settings: ModernHeroSettings

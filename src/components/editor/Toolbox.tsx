@@ -77,7 +77,7 @@ export const Toolbox = () => {
                                         <Button
                                             variant="outline"
                                             className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
-                                            ref={(ref: any) => connectors.create(ref, <UserText text="Heading" fontSize={26} fontWeight="bold" />)}
+                                            ref={(ref: any) => connectors.create(ref, <Element is={UserText} custom={{ displayName: "Heading" }} text="Heading" fontSize={26} fontWeight="bold" />)}
                                         >
                                             <Type className="h-6 w-6" />
                                             <span className="text-xs">Heading</span>
@@ -85,7 +85,7 @@ export const Toolbox = () => {
                                         <Button
                                             variant="outline"
                                             className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
-                                            ref={(ref: any) => connectors.create(ref, <UserText text="Paragraph" fontSize={16} />)}
+                                            ref={(ref: any) => connectors.create(ref, <Element is={UserText} custom={{ displayName: "Paragraph" }} text="Paragraph" fontSize={16} />)}
                                         >
                                             <Type className="h-4 w-4" />
                                             <span className="text-xs">Paragraph</span>
@@ -125,7 +125,7 @@ export const Toolbox = () => {
                                         <Button
                                             variant="outline"
                                             className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
-                                            ref={(ref: any) => connectors.create(ref, <Element is={UserContainer} canvas height="500px" width="100%" layoutMode="canvas" padding={0} />)}
+                                            ref={(ref: any) => connectors.create(ref, <Element is={UserContainer} custom={{ displayName: "Container" }} canvas height="500px" width="100%" layoutMode="canvas" padding={0} />)}
                                         >
                                             <Square className="h-6 w-6" />
                                             <span className="text-xs">Container</span>
@@ -133,7 +133,7 @@ export const Toolbox = () => {
                                         <Button
                                             variant="outline"
                                             className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
-                                            ref={(ref: any) => connectors.create(ref, <Element is={UserContainer} flexDirection="row" flexWrap="wrap" width="100%" gap={0} padding={0} layoutMode="canvas" minHeight="300px" canvas />)}
+                                            ref={(ref: any) => connectors.create(ref, <Element is={UserContainer} custom={{ displayName: "Row" }} flexDirection="row" flexWrap="wrap" width="100%" gap={0} padding={0} layoutMode="canvas" minHeight="300px" canvas />)}
                                         >
                                             <Columns className="h-6 w-6 rotate-90" />
                                             <span className="text-xs">Row</span>
@@ -143,7 +143,7 @@ export const Toolbox = () => {
                                             className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
                                             ref={(ref: any) => connectors.create(
                                                 ref,
-                                                <Element is={UserContainer} flexDirection="row" flexWrap="wrap" width="100%" gap={0} padding={0} canvas>
+                                                <Element is={UserContainer} custom={{ displayName: "2 Cols" }} flexDirection="row" flexWrap="wrap" width="100%" gap={0} padding={0} canvas>
                                                     <Element is={UserContainer} width="50%" padding={0} layoutMode="canvas" minHeight="200px" canvas />
                                                     <Element is={UserContainer} width="50%" padding={0} layoutMode="canvas" minHeight="200px" canvas />
                                                 </Element>
@@ -157,7 +157,7 @@ export const Toolbox = () => {
                                             className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
                                             ref={(ref: any) => connectors.create(
                                                 ref,
-                                                <Element is={UserContainer} layoutMode="grid" gridColumns={2} gap={20} width="100%" padding={20} canvas>
+                                                <Element is={UserContainer} custom={{ displayName: "Grid 2" }} layoutMode="grid" gridColumns={2} gap={20} width="100%" padding={20} canvas>
                                                     <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="120px" canvas />
                                                     <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="120px" canvas />
                                                 </Element>
@@ -171,7 +171,7 @@ export const Toolbox = () => {
                                             className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
                                             ref={(ref: any) => connectors.create(
                                                 ref,
-                                                <Element is={UserContainer} layoutMode="grid" gridColumns={4} gap={20} width="100%" padding={20} canvas>
+                                                <Element is={UserContainer} custom={{ displayName: "Grid 4" }} layoutMode="grid" gridColumns={4} gap={20} width="100%" padding={20} canvas>
                                                     <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="100px" canvas />
                                                     <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="100px" canvas />
                                                     <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="100px" canvas />
@@ -187,7 +187,7 @@ export const Toolbox = () => {
                                             className="flex flex-col h-20 items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-colors"
                                             ref={(ref: any) => connectors.create(
                                                 ref,
-                                                <Element is={UserContainer} layoutMode="grid" gridColumns={6} gap={20} width="100%" padding={20} canvas>
+                                                <Element is={UserContainer} custom={{ displayName: "Grid 6" }} layoutMode="grid" gridColumns={6} gap={20} width="100%" padding={20} canvas>
                                                     <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="80px" canvas />
                                                     <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="80px" canvas />
                                                     <Element is={UserContainer} width="100%" padding={0} layoutMode="canvas" minHeight="80px" canvas />
