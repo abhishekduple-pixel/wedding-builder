@@ -184,7 +184,7 @@ export const UserImage = ({ src, width, height, padding, margin, background, bor
                 display: "flex",
                 justifyContent: getJustifyContent(),
                 alignSelf: getJustifyContent(),
-                zIndex: selected ? 100 : 0, // 0 when not selected so text (z-index 1) always stacks on top, matching Video + text
+                zIndex: 0, // Keep media below text (z-index 1) when selected, matching Video layering
                 ...(device === "mobile" ? { position: "relative", top: 0, left: 0 } : itemStyle),
             }}
             initial="initial"

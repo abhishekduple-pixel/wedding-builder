@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { StylesPanel } from "@/components/editor/properties/StylesPanel";
 import { useAppContext } from "../../editor/AppContext";
+import { useCanvasDrag } from "../hooks/useCanvasDrag";
 
 export const ModernHeroSettings = () => {
     const { actions: { setProp }, imageLeft, imageCenter, imageRight, grayscaleSides, overlayOpacity } = useNode((node) => ({
@@ -100,6 +101,8 @@ export const UserModernHero = ({
     margin = 0,
     width,
     height,
+    top = 0,
+    left = 0,
 }: any) => {
     const { connectors: { connect, drag }, selected } = useNode((state) => ({
         selected: state.events.selected,
@@ -108,17 +111,22 @@ export const UserModernHero = ({
     const { device } = useAppContext();
     const isMobile = device === "mobile";
 
+    const { itemStyle } = useCanvasDrag(top, left);
+
+    const defaultMinHeight = isMobile ? "400px" : "600px";
+    const resolvedMinHeight = typeof height === "number" ? `${height}px` : (height || defaultMinHeight);
+
     const sideStyle = {
         backgroundSize: "cover",
         backgroundPosition: "center",
         filter: grayscaleSides ? "grayscale(100%)" : "none",
-        minHeight: "600px"
+        minHeight: resolvedMinHeight
     };
 
     const centerStyle = {
         backgroundSize: "cover",
         backgroundPosition: "center",
-        minHeight: "600px",
+        minHeight: resolvedMinHeight,
         position: "relative" as const
     };
 
@@ -129,15 +137,12 @@ export const UserModernHero = ({
     if (width != null) {
         rootStyle.width = typeof width === "number" ? `${width}px` : width;
     }
-    if (height != null) {
-        rootStyle.height = typeof height === "number" ? `${height}px` : height;
-    }
 
     return (
         <div 
             ref={(ref: any) => connect(drag(ref))}
             className={`flex ${isMobile ? "flex-col" : "flex-row"} ${selected ? "ring-2 ring-blue-500" : ""}`}
-            style={rootStyle}
+            style={{ ...rootStyle, ...itemStyle }}
         >
             {/* Left Column - Hidden on mobile */}
             {!isMobile && (
@@ -145,12 +150,12 @@ export const UserModernHero = ({
             )}
 
             {/* Center Column */}
-            <div className={`${isMobile ? "w-full" : "flex-[1.5]"} flex flex-col items-center justify-center text-center ${isMobile ? "p-4" : "p-8"} relative`} style={{ ...centerStyle, backgroundImage: `url(${imageCenter})`, minHeight: isMobile ? "400px" : "600px" }}>
+            <div className={`${isMobile ? "w-full" : "flex-[1.5]"} flex flex-col items-center justify-center text-center ${isMobile ? "p-4" : "p-8"} relative`} style={{ ...centerStyle, backgroundImage: `url(${imageCenter})`, minHeight: resolvedMinHeight }}>
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-black" style={{ opacity: overlayOpacity }} />
                 
                 {/* Content */}
-                <div className="relative z-10 space-y-4">
+                {/* <div className="relative z-10 space-y-4">
                      <Element
                         id="hero_title"
                         is={UserContainer}
@@ -161,23 +166,8 @@ export const UserModernHero = ({
                         flexDirection="column"
                         gap={20}
                      >
-                        <UserText
-                            text=""
-                            fontSize={14}
-                            color="#ffffff"
-                            fontFamily="'Montserrat', sans-serif"
-                            textAlign="center"
-                        />
-                        <UserText
-                            text=""
-                            fontSize={64}
-                            color="#ffffff"
-                            fontFamily="'Playfair Display', serif"
-                            fontWeight="bold"
-                            textAlign="center"
-                        />
                      </Element>
-                </div>
+                </div> */}
             </div>
 
             {/* Right Column - Hidden on mobile */}
@@ -191,7 +181,7 @@ export const UserModernHero = ({
 UserModernHero.craft = {
     displayName: "Split Hero",
     props: {
-        imageLeft: "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?q=80&w=1974&auto=format&fit=crop",
+        imageLeft: "https://images.unsplash.com/photo-1511285560982-1351cdeb9821",
         imageCenter: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=1974&auto=format&fit=crop",
         imageRight: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop",
         grayscaleSides: true,
@@ -200,6 +190,8 @@ UserModernHero.craft = {
         margin: 0,
         width: "100%",
         height: undefined,
+        top: 0,
+        left: 0,
     },
     related: {
         settings: ModernHeroSettings

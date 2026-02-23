@@ -8,8 +8,6 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Slider } from "../ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
-import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
-import { StylesPanel } from "../editor/properties/StylesPanel";
 import { getSpacing, getResponsiveSpacing, getResponsiveFontSize } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { getAnimationVariants } from "./AnimationSection";
@@ -17,7 +15,7 @@ import { useCanvasDrag } from "./hooks/useCanvasDrag";
 import { useAppContext } from "../editor/AppContext";
 
 export const ButtonSettings = () => {
-    const { actions: { setProp }, text, url, variant, size, color, borderColor, align, fontSize } = useNode((node) => ({
+    const { actions: { setProp }, text, url, variant, size, color, borderColor, align, fontSize, linkTarget, background } = useNode((node) => ({
         text: node.data.props.text,
         url: node.data.props.url,
         variant: node.data.props.variant,
@@ -26,6 +24,8 @@ export const ButtonSettings = () => {
         borderColor: node.data.props.borderColor,
         align: node.data.props.align,
         fontSize: node.data.props.fontSize,
+        linkTarget: node.data.props.linkTarget,
+        background: node.data.props.background,
     }));
 
     return (
@@ -47,6 +47,20 @@ export const ButtonSettings = () => {
                 />
             </div>
 
+            {url && (
+                <div className="space-y-2">
+                    <Label>Open Link In</Label>
+                    <ToggleGroup
+                        type="single"
+                        value={linkTarget || "same_tab"}
+                        onValueChange={(val) => val && setProp((props: any) => props.linkTarget = val)}
+                    >
+                        <ToggleGroupItem value="same_tab">Same Tab</ToggleGroupItem>
+                        <ToggleGroupItem value="new_tab">New Tab</ToggleGroupItem>
+                    </ToggleGroup>
+                </div>
+            )}
+
             <div className="space-y-2">
                 <Label>Font Size: {fontSize || 14}px</Label>
                 <Slider
@@ -55,15 +69,6 @@ export const ButtonSettings = () => {
                     step={1}
                     onValueChange={(val) => setProp((props: any) => props.fontSize = val[0])}
                 />
-            </div>
-
-            <div className="space-y-2">
-                <Label>Alignment</Label>
-                <ToggleGroup type="single" value={align || ""} onValueChange={(val) => setProp((props: any) => props.align = val)}>
-                    <ToggleGroupItem value="left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
-                </ToggleGroup>
             </div>
 
             <div className="space-y-2">
@@ -103,6 +108,24 @@ export const ButtonSettings = () => {
             </div>
 
             <div className="space-y-2">
+                <Label>Background Color</Label>
+                <div className="flex gap-2">
+                    <Input
+                        type="color"
+                        value={background && background !== "transparent" ? background : "#000000"}
+                        className="w-10 h-10 p-1"
+                        onChange={(e) => setProp((props: any) => props.background = e.target.value)}
+                    />
+                    <Input
+                        type="text"
+                        value={background || ""}
+                        placeholder="#000000 or transparent"
+                        onChange={(e) => setProp((props: any) => props.background = e.target.value)}
+                    />
+                </div>
+            </div>
+
+            <div className="space-y-2">
                 <Label>Variant</Label>
                 <div className="flex flex-wrap gap-2">
                     {['default', 'destructive', 'outline', 'secondary', 'ghost', 'link', 'pill'].map((v) => (
@@ -129,12 +152,11 @@ export const ButtonSettings = () => {
                 </ToggleGroup>
             </div>
 
-            <StylesPanel />
         </div>
     );
 };
 
-export const UserButton = ({ text, url, variant, size, padding, margin, width, height, background, borderRadius, color, borderColor, align, animationType, animationDuration, animationDelay, fontSize }: any) => {
+export const UserButton = ({ text, url, variant, size, padding, margin, width, height, background, borderRadius, color, borderColor, align, animationType, animationDuration, animationDelay, fontSize, linkTarget }: any) => {
     const { connectors: { connect, drag }, selected, actions: { setProp }, top, left } = useNode((node) => ({
         selected: node.events.selected,
         top: node.data.props.top,
@@ -160,7 +182,11 @@ export const UserButton = ({ text, url, variant, size, padding, margin, width, h
     const handleClick = () => {
         if (enabled) return;
         if (url) {
-            window.location.href = url;
+            if (linkTarget === "new_tab") {
+                window.open(url, "_blank", "noopener,noreferrer");
+            } else {
+                window.location.href = url;
+            }
         }
     };
 
@@ -234,6 +260,7 @@ UserButton.craft = {
         left: 0,
         height: undefined,
         fontSize: 14,
+        linkTarget: "same_tab",
     },
     related: {
         settings: ButtonSettings,

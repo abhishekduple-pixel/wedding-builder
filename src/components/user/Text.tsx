@@ -60,7 +60,7 @@ import { useAppContext } from "../editor/AppContext";
             <div className="space-y-2">
                 <Label>Font Size: {fontSize}px</Label>
                 <Slider
-                    defaultValue={[fontSize || 16]}
+                    value={[fontSize || 16]}
                     max={100}
                     step={1}
                     onValueChange={(val) => {
@@ -197,15 +197,27 @@ export const UserText = ({ text, fontSize, color, textAlign, fontWeight, fontSty
     const scale = (scaleW !== 1 || scaleH !== 1) ? Math.min(scaleW, scaleH) : 1;
     const scaledFontSize = Math.round(Math.max(8, Math.min(200, baseF * scale)));
 
+    useEffect(() => {
+        const hasResized = (numWidth != null && baseW != null) || (numHeight != null && baseH != null);
+        const targetSize = hasResized ? scaledFontSize : (fontSize || 16);
+        if (!targetSize || targetSize === fontSize) return;
+        try {
+            setProp((p: any) => {
+                p.fontSize = targetSize;
+            });
+        } catch {
+        }
+    }, [numWidth, numHeight, baseW, baseH, scaledFontSize, fontSize, setProp]);
+
     // Get responsive font size based on device (use scaled size when resized by width or height)
     const responsiveFontSize = getResponsiveFontSize((numWidth != null || numHeight != null) ? scaledFontSize : (fontSize || 16), device);
 
-    // Adjust width for mobile - ensure it doesn't exceed container; use numeric width/height from corner resize when set
+    // Adjust width consistently with media components: numeric values become px, string widths pass through
     const responsiveWidth = device === "mobile" && width && typeof width === "string" && width.includes("px")
         ? "100%"
         : width;
-    const styleWidth = typeof width === "number" ? `${width}px` : (device === "mobile" ? "100%" : responsiveWidth);
-    const styleHeight = typeof height === "number" ? `${height}px` : undefined;
+    const styleWidth = typeof width === "number" ? `${width}px` : responsiveWidth;
+    const styleHeight = undefined;
 
     return (
         <motion.div
