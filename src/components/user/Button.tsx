@@ -15,7 +15,7 @@ import { useCanvasDrag } from "./hooks/useCanvasDrag";
 import { useAppContext } from "../editor/AppContext";
 
 export const ButtonSettings = () => {
-    const { actions: { setProp }, text, url, variant, size, color, borderColor, align, fontSize, linkTarget, background } = useNode((node) => ({
+    const { actions: { setProp }, text, url, variant, size, color, borderColor, align, fontSize, linkTarget, background, borderRadius, borderWidth } = useNode((node) => ({
         text: node.data.props.text,
         url: node.data.props.url,
         variant: node.data.props.variant,
@@ -26,6 +26,8 @@ export const ButtonSettings = () => {
         fontSize: node.data.props.fontSize,
         linkTarget: node.data.props.linkTarget,
         background: node.data.props.background,
+        borderRadius: node.data.props.borderRadius,
+        borderWidth: node.data.props.borderWidth,
     }));
 
     return (
@@ -126,6 +128,26 @@ export const ButtonSettings = () => {
             </div>
 
             <div className="space-y-2">
+                <Label>Border Radius: {borderRadius || 0}px</Label>
+                <Slider
+                    defaultValue={[borderRadius || 0]}
+                    max={64}
+                    step={1}
+                    onValueChange={(val) => setProp((props: any) => props.borderRadius = val[0])}
+                />
+            </div>
+
+            <div className="space-y-2">
+                <Label>Border Thickness: {borderWidth ?? 2}px</Label>
+                <Slider
+                    defaultValue={[borderWidth ?? 2]}
+                    max={12}
+                    step={1}
+                    onValueChange={(val) => setProp((props: any) => props.borderWidth = val[0])}
+                />
+            </div>
+
+            <div className="space-y-2">
                 <Label>Variant</Label>
                 <div className="flex flex-wrap gap-2">
                     {['default', 'destructive', 'outline', 'secondary', 'ghost', 'link', 'pill'].map((v) => (
@@ -156,7 +178,7 @@ export const ButtonSettings = () => {
     );
 };
 
-export const UserButton = ({ text, url, variant, size, padding, margin, width, height, background, borderRadius, color, borderColor, align, animationType, animationDuration, animationDelay, fontSize, linkTarget }: any) => {
+export const UserButton = ({ text, url, variant, size, padding, margin, width, height, background, borderRadius, color, borderColor, borderWidth, align, animationType, animationDuration, animationDelay, fontSize, linkTarget }: any) => {
     const { connectors: { connect, drag }, selected, actions: { setProp }, top, left } = useNode((node) => ({
         selected: node.events.selected,
         top: node.data.props.top,
@@ -225,8 +247,7 @@ export const UserButton = ({ text, url, variant, size, padding, margin, width, h
                     backgroundColor: background === "transparent" ? undefined : background,
                     borderRadius: borderRadius ? `${borderRadius}px` : undefined,
                     color: color || undefined,
-                    // Apply border so selected border color is visible (width + style + color)
-                    ...(borderColor ? { borderWidth: 2, borderStyle: "solid" as const, borderColor } : {}),
+                    ...(borderColor && (borderWidth ?? 2) > 0 ? { borderWidth: borderWidth ?? 2, borderStyle: "solid" as const, borderColor } : {}),
                     padding: padding ? getSpacing(device === "mobile" ? getResponsiveSpacing(padding, device) : padding) : undefined,
                     height: typeof height === "number" ? `${height}px` : "auto",
                     fontSize: responsiveFontSize ? `${responsiveFontSize}px` : undefined,
@@ -252,6 +273,7 @@ UserButton.craft = {
         background: "#000000",
         color: "#ffffff",
         borderColor: "transparent",
+        borderWidth: 2,
         borderRadius: 0,
         animationType: "none",
         animationDuration: 0.5,
