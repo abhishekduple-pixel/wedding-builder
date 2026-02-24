@@ -182,15 +182,15 @@ const ChartSettings = () => {
                 <Input type="number" value={typeof height === "number" ? height : 300} onChange={(e) => setProp((props: any) => props.height = parseInt(e.target.value, 10) || 300)} />
             </div>
 
-            <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                    <Label>Chart data</Label>
-                    <Button type="button" variant="outline" size="icon" className="h-8 w-8" onClick={addRow} title="Add row">
+            <div className="space-y-2 pt-4 mt-4 border-t border-border">
+                <div className="flex items-center justify-between gap-2">
+                    <Label className="shrink-0">Chart data</Label>
+                    <Button type="button" variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={addRow} title="Add row">
                         <Plus className="h-4 w-4" />
                     </Button>
                 </div>
                 <div className="border rounded-md overflow-hidden max-h-[240px] overflow-y-auto">
-                    <div className="grid grid-cols-[1fr_80px_28px] gap-1 p-2 bg-muted/50 sticky top-0 z-10 text-xs font-medium">
+                    <div className="grid grid-cols-[1fr_80px_28px] gap-1 p-2 bg-muted sticky top-0 z-10 text-xs font-medium border-b border-border">
                         <span>Label</span>
                         <span>Value</span>
                         <span />

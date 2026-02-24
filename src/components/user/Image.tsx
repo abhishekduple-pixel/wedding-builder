@@ -5,11 +5,9 @@ import { useNode, useEditor } from "@craftjs/core";
 import React from "react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
-import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
+import { Slider } from "../ui/slider";
 import { AnimationSection, getAnimationVariants } from "./AnimationSection";
 import { motion } from "framer-motion";
-import { StylesPanel } from "../editor/properties/StylesPanel";
 import { getSpacing, cn } from "@/lib/utils";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 import { useAppContext } from "../editor/AppContext";
@@ -23,7 +21,7 @@ const OBJECT_FIT_OPTIONS = [
 ] as const;
 
 export const ImageSettings = () => {
-    const { actions: { setProp }, src, width, height, background, borderRadius, minHeight, animationType, animationDuration, animationDelay, align, objectFit } = useNode((node) => ({
+    const { actions: { setProp }, src, width, height, background, borderRadius, minHeight, animationType, animationDuration, animationDelay, objectFit } = useNode((node) => ({
         src: node.data.props.src,
         width: node.data.props.width,
         height: node.data.props.height,
@@ -33,7 +31,6 @@ export const ImageSettings = () => {
         animationType: node.data.props.animationType,
         animationDuration: node.data.props.animationDuration,
         animationDelay: node.data.props.animationDelay,
-        align: node.data.props.align,
         objectFit: node.data.props.objectFit,
     }));
 
@@ -88,15 +85,6 @@ export const ImageSettings = () => {
             </div>
 
             <div className="space-y-2">
-                <Label>Alignment</Label>
-                <ToggleGroup type="single" value={align || "center"} onValueChange={(val) => val && setProp((props: any) => props.align = val)}>
-                    <ToggleGroupItem value="left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
-                </ToggleGroup>
-            </div>
-
-            <div className="space-y-2">
                 <Label>Object fit</Label>
                 <select
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -128,8 +116,16 @@ export const ImageSettings = () => {
                     />
                 </div>
             </div>
+            <div className="space-y-2">
+                <Label>Border Radius: {borderRadius || 0}px</Label>
+                <Slider
+                    defaultValue={[borderRadius || 0]}
+                    max={64}
+                    step={1}
+                    onValueChange={(val) => setProp((props: any) => props.borderRadius = val[0])}
+                />
+            </div>
 
-            <StylesPanel />
             <AnimationSection />
         </div>
     );

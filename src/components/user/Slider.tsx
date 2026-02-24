@@ -58,7 +58,7 @@ export const SliderSettings = () => {
                     onValueChange={(val) => setProp((props: any) => props.defaultValue = val[0])}
                 />
             </div>
-            <StylesPanel />
+            <StylesPanel hideDimensions />
         </div>
     );
 };
@@ -90,12 +90,20 @@ export const UserSlider = ({ min, max, step, defaultValue, padding, margin, widt
             animate="animate"
             variants={variants as any}
         >
-            <Slider
-                defaultValue={[defaultValue]}
-                min={min}
-                max={max}
-                step={step}
-            />
+            <div
+                className="min-w-0 flex-1"
+                onPointerDown={(e) => e.stopPropagation()}
+                onPointerMove={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <Slider
+                    value={[defaultValue]}
+                    min={min}
+                    max={max}
+                    step={step}
+                    onValueChange={(val) => setProp((props: any) => (props.defaultValue = val[0]))}
+                />
+            </div>
         </motion.div>
     );
 };

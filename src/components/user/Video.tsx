@@ -6,17 +6,15 @@ import React from "react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Switch } from "../ui/switch";
-import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
-import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
+import { Slider } from "../ui/slider";
 import { AnimationSection, getAnimationVariants } from "./AnimationSection";
 import { motion } from "framer-motion";
-import { StylesPanel } from "../editor/properties/StylesPanel";
 import { getSpacing, cn } from "@/lib/utils";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 import { useAppContext } from "../editor/AppContext";
 
 export const VideoSettings = () => {
-    const { actions: { setProp }, url, width, height, background, borderRadius, minHeight, autoplay, loop, controls, animationType, animationDuration, animationDelay, align } = useNode((node) => ({
+    const { actions: { setProp }, url, width, height, background, borderRadius, minHeight, autoplay, loop, controls, animationType, animationDuration, animationDelay } = useNode((node) => ({
         url: node.data.props.url,
         width: node.data.props.width,
         height: node.data.props.height,
@@ -29,7 +27,6 @@ export const VideoSettings = () => {
         animationType: node.data.props.animationType,
         animationDuration: node.data.props.animationDuration,
         animationDelay: node.data.props.animationDelay,
-        align: node.data.props.align,
     }));
 
     return (
@@ -82,15 +79,6 @@ export const VideoSettings = () => {
                 />
             </div>
 
-            <div className="space-y-2">
-                <Label>Alignment</Label>
-                <ToggleGroup type="single" value={align || "center"} onValueChange={(val) => val && setProp((props: any) => props.align = val)}>
-                    <ToggleGroupItem value="left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
-                </ToggleGroup>
-            </div>
-
             <div className="flex items-center justify-between">
                 <Label>Autoplay</Label>
                 <Switch
@@ -115,7 +103,34 @@ export const VideoSettings = () => {
                 />
             </div>
 
-            <StylesPanel />
+            <div className="space-y-2 pt-4 border-t">
+                <Label>Background Color</Label>
+                <div className="flex gap-2">
+                    <Input
+                        type="color"
+                        value={background && background !== "transparent" ? background : "#000000"}
+                        className="w-8 h-8 p-1 border-none"
+                        onChange={(e) => setProp((props: any) => (props.background = e.target.value))}
+                    />
+                    <Input
+                        value={background || ""}
+                        placeholder="#000000 or transparent"
+                        onChange={(e) => setProp((props: any) => (props.background = e.target.value))}
+                        className="h-8 flex-1"
+                    />
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <Label>Border Radius: {borderRadius || 0}px</Label>
+                <Slider
+                    defaultValue={[borderRadius || 0]}
+                    max={64}
+                    step={1}
+                    onValueChange={(val) => setProp((props: any) => props.borderRadius = val[0])}
+                />
+            </div>
+
             <AnimationSection />
         </div>
     );
