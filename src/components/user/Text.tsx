@@ -8,16 +8,15 @@ import { Slider } from "../ui/slider";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
-import { AlignLeft, AlignCenter, AlignRight, Bold, Italic, Underline, Strikethrough } from "lucide-react";
+import { Bold, Italic, Underline, Strikethrough } from "lucide-react";
 import { AnimationSection, getAnimationVariants } from "./AnimationSection";
 import { motion } from "framer-motion";
-import { StylesPanel } from "../editor/properties/StylesPanel";
 import { getSpacing, getResponsiveFontSize, getResponsiveSpacing } from "@/lib/utils";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 import { useAppContext } from "../editor/AppContext";
 
-    export const TextSettings = () => {
-    const { actions: { setProp }, fontSize, color, textAlign, fontWeight, fontStyle, textDecoration, text, fontFamily, height, width } = useNode((node) => ({
+export const TextSettings = () => {
+    const { actions: { setProp }, fontSize, color, textAlign, fontWeight, fontStyle, textDecoration, text, fontFamily, height, width, background, borderRadius } = useNode((node) => ({
         fontSize: node.data.props.fontSize,
         color: node.data.props.color,
         textAlign: node.data.props.textAlign,
@@ -28,6 +27,8 @@ import { useAppContext } from "../editor/AppContext";
         fontFamily: node.data.props.fontFamily,
         height: node.data.props.height,
         width: node.data.props.width,
+        background: node.data.props.background,
+        borderRadius: node.data.props.borderRadius,
     }));
 
     return (
@@ -92,14 +93,32 @@ import { useAppContext } from "../editor/AppContext";
                 </div>
             </div>
 
-            <div className="space-y-4 pt-4 border-t">
-                <Label>Text Alignment</Label>
-                <ToggleGroup type="single" value={textAlign || "left"} onValueChange={(val) => val && setProp((props: any) => props.textAlign = val)}>
-                    <ToggleGroupItem value="left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="justify"><AlignLeft className="h-4 w-4" />J</ToggleGroupItem>
-                </ToggleGroup>
+            <div className="space-y-2">
+                <Label>Background Color</Label>
+                <div className="flex gap-2">
+                    <Input
+                        type="color"
+                        value={background && background !== "transparent" ? background : "#ffffff"}
+                        className="w-10 h-10 p-1"
+                        onChange={(e) => setProp((props: any) => props.background = e.target.value)}
+                    />
+                    <Input
+                        type="text"
+                        value={background || ""}
+                        placeholder="#ffffff or transparent"
+                        onChange={(e) => setProp((props: any) => props.background = e.target.value)}
+                    />
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <Label>Border Radius: {borderRadius || 0}px</Label>
+                <Slider
+                    value={[borderRadius || 0]}
+                    max={64}
+                    step={1}
+                    onValueChange={(val) => setProp((props: any) => props.borderRadius = val[0])}
+                />
             </div>
 
             <div className="space-y-2">
@@ -142,8 +161,6 @@ import { useAppContext } from "../editor/AppContext";
                     </ToggleGroupItem>
                 </ToggleGroup>
             </div>
-
-            <StylesPanel />
         </div>
     );
 };

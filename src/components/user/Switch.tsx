@@ -34,7 +34,7 @@ export const SwitchSettings = () => {
                     onCheckedChange={(val) => setProp((props: any) => props.checked = val)}
                 />
             </div>
-            <StylesPanel />
+            <StylesPanel hideDimensions />
         </div>
     );
 };
@@ -66,7 +66,17 @@ export const UserSwitch = ({ label, checked, padding, margin, width, height, bac
             animate="animate"
             variants={variants as any}
         >
-            <Switch checked={checked} />
+            <div
+                onPointerDown={(e) => e.stopPropagation()}
+                onPointerMove={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center shrink-0"
+            >
+                <Switch
+                    checked={checked}
+                    onCheckedChange={(val) => setProp((props: any) => (props.checked = val))}
+                />
+            </div>
             {label && <Label>{label}</Label>}
         </motion.div>
     );

@@ -7,7 +7,12 @@ import { Label } from "../../ui/label";
 import { Input } from "../../ui/input";
 import { Slider } from "../../ui/slider";
 
-export const StylesPanel = () => {
+type StylesPanelProps = {
+    /** When true, hides the Min Height and Width dimension inputs */
+    hideDimensions?: boolean;
+};
+
+export const StylesPanel = ({ hideDimensions }: StylesPanelProps) => {
     const { actions: { setProp }, width, minHeight, background, borderRadius } = useNode((node) => ({
         width: node.data.props.width,
         minHeight: node.data.props.minHeight,
@@ -20,28 +25,30 @@ export const StylesPanel = () => {
             <Label className="text-gray-500 font-bold uppercase text-xs tracking-wider">Layout & Style</Label>
 
             {/* Dimensions */}
-            <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                        <Label className="text-xs text-gray-400">Min Height</Label>
-                        <Input
-                            value={minHeight || ""}
-                            placeholder="e.g. 100px"
-                            onChange={(e) => setProp((props: any) => props.minHeight = e.target.value)}
-                            className="h-8"
-                        />
-                    </div>
-                    <div className="space-y-1">
-                        <Label className="text-xs text-gray-400">Width</Label>
-                        <Input
-                            value={width || ""}
-                            placeholder="e.g. 100%"
-                            onChange={(e) => setProp((props: any) => props.width = e.target.value)}
-                            className="h-8"
-                        />
+            {!hideDimensions && (
+                <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                            <Label className="text-xs text-gray-400">Min Height</Label>
+                            <Input
+                                value={minHeight || ""}
+                                placeholder="e.g. 100px"
+                                onChange={(e) => setProp((props: any) => props.minHeight = e.target.value)}
+                                className="h-8"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="text-xs text-gray-400">Width</Label>
+                            <Input
+                                value={width || ""}
+                                placeholder="e.g. 100%"
+                                onChange={(e) => setProp((props: any) => props.width = e.target.value)}
+                                className="h-8"
+                            />
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             {/* Appearance */}
             <div className="space-y-2">

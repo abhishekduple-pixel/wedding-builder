@@ -24,7 +24,6 @@ export const Viewport = ({ children }: { children: React.ReactNode }) => {
     }));
 
     const isMobile = device === "mobile";
-    const MOBILE_WIDTH = 375;
     const DESKTOP_MAX_WIDTH = 1024;
     // Fixed panel widths so center = total - TOOLBOX_WIDTH - PANEL_WIDTH (no overlap at any viewport)
     const TOOLBOX_WIDTH_PX = 256;   // w-64
@@ -89,9 +88,9 @@ export const Viewport = ({ children }: { children: React.ReactNode }) => {
                                 enabled ? "ring-offset-2 ring-0" : "ring-0"
                             )}
                             style={isMobile ? {
-                                maxWidth: `${MOBILE_WIDTH}px`,
-                                width: `${MOBILE_WIDTH}px`,
-                                minWidth: `${MOBILE_WIDTH}px`,
+                                width: "var(--mobile-canvas-default, 375px)",
+                                minWidth: "var(--mobile-canvas-min, 320px)",
+                                maxWidth: "var(--mobile-canvas-max, 428px)",
                                 overflowX: "hidden",
                                 overflowY: "auto",
                                 marginLeft: "auto",
@@ -117,7 +116,7 @@ export const Viewport = ({ children }: { children: React.ReactNode }) => {
                             "w-full flex flex-col gap-3",
                             isMobile ? "mt-4 px-4 items-center" : "mt-4 pb-8 items-center max-w-5xl"
                         )}
-                            style={isMobile ? { maxWidth: `${MOBILE_WIDTH}px`, marginLeft: "auto", marginRight: "auto" } : undefined}>
+                            style={isMobile ? { maxWidth: "var(--mobile-canvas-max, 428px)", marginLeft: "auto", marginRight: "auto" } : undefined}>
                             <button
                                 type="button"
                                 className="w-full border border-gray-200 rounded-lg py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
