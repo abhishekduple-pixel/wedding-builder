@@ -11,6 +11,7 @@ import { getSpacing } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { getAnimationVariants } from "./AnimationSection";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
+import { useAppContext } from "../editor/AppContext";
 
 export const SwitchSettings = () => {
     const { actions: { setProp }, label, checked } = useNode((node) => ({
@@ -46,20 +47,26 @@ export const UserSwitch = ({ label, checked, padding, margin, width, height, bac
         left: state.data.props.left || 0,
     }));
 
+    const { device } = useAppContext();
     const variants = getAnimationVariants(animationType, animationDuration, animationDelay);
     const { itemStyle } = useCanvasDrag(top, left);
+
+    const responsiveWidth = device === "mobile" && width && typeof width === "string" && width.includes("px")
+        ? "100%"
+        : (typeof width === "number" ? `${width}px` : (width === "100%" ? "auto" : width));
 
     return (
         <motion.div
             ref={(ref: any) => connect(drag(ref))}
             style={{
-                width: typeof width === "number" ? `${width}px` : (width === "100%" ? "auto" : width),
+                width: responsiveWidth,
+                maxWidth: device === "mobile" ? "100%" : undefined,
                 height: typeof height === "number" ? `${height}px` : undefined,
                 padding: getSpacing(padding),
                 margin: getSpacing(margin),
                 backgroundColor: background,
                 borderRadius: borderRadius ? `${borderRadius}px` : undefined,
-                ...itemStyle,
+                ...(device === "mobile" ? { position: "relative" as const, top: 0, left: 0 } : itemStyle),
             }}
             className={`flex items-center gap-2 ${selected ? "ring-2 ring-blue-400 ring-offset-2 rounded" : ""}`}
             initial="initial"

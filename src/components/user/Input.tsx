@@ -9,6 +9,7 @@ import { StylesPanel } from "../editor/properties/StylesPanel";
 import { getSpacing } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { getAnimationVariants } from "./AnimationSection";
+import { useAppContext } from "../editor/AppContext";
 import { useCanvasDrag } from "./hooks/useCanvasDrag";
 
 export const InputSettings = () => {
@@ -67,20 +68,26 @@ export const UserInput = ({ placeholder, type, value, padding, margin, width, he
         enabled: state.options.enabled,
     }));
 
+    const { device } = useAppContext();
     const variants = getAnimationVariants(animationType, animationDuration, animationDelay);
     const { itemStyle } = useCanvasDrag(top, left);
+
+    const responsiveWidth = device === "mobile" && width && typeof width === "string" && width.includes("px")
+        ? "100%"
+        : (typeof width === "number" ? `${width}px` : (width || "100%"));
 
     return (
         <motion.div
             ref={(ref: any) => connect(drag(ref))}
             style={{
-                width: typeof width === "number" ? `${width}px` : (width || "100%"),
+                width: responsiveWidth,
+                maxWidth: device === "mobile" ? "100%" : undefined,
                 height: typeof height === "number" ? `${height}px` : undefined,
                 padding: getSpacing(padding),
                 margin: getSpacing(margin),
                 background,
                 borderRadius: borderRadius ? `${borderRadius}px` : undefined,
-                ...itemStyle,
+                ...(device === "mobile" ? { position: "relative" as const, top: 0, left: 0 } : itemStyle),
             }}
             className="w-full"
             initial="initial"

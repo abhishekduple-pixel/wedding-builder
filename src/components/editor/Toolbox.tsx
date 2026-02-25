@@ -8,7 +8,7 @@ import { Label } from "../ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 import { Type, Image as ImageIcon, Square, Youtube, Columns, Grid } from "lucide-react";
-import { Layers } from "./Layers";
+import { Layers } from "@craftjs/layers";
 import { UserText } from "../user/Text";
 import { UserContainer } from "../user/Container";
 import { UserImage } from "../user/Image";
@@ -399,9 +399,13 @@ export const Toolbox = () => {
                     </div>
                 </TabsContent>
 
-                <TabsContent value="layers" className="flex-1 p-0 overflow-hidden flex flex-col min-h-0">
-                    <div className="h-full w-full p-4 overflow-y-auto">
-                        <Layers />
+                <TabsContent
+                    value="layers"
+                    forceMount
+                    className="flex-1 p-0 overflow-hidden flex flex-col min-h-0 data-[state=inactive]:hidden"
+                >
+                    <div className="h-full w-full overflow-y-auto">
+                        <Layers expandRootOnLoad />
                     </div>
                 </TabsContent>
             </Tabs>

@@ -6,6 +6,8 @@ import React from "react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Slider } from "../ui/slider";
+import { Button } from "../ui/button";
+import { RotateCw, RotateCcw } from "lucide-react";
 import { AnimationSection, getAnimationVariants } from "./AnimationSection";
 import { motion } from "framer-motion";
 import { getSpacing, cn } from "@/lib/utils";
@@ -20,8 +22,10 @@ const OBJECT_FIT_OPTIONS = [
     { value: "scale-down", label: "Scale down" },
 ] as const;
 
+const CROP_OBJECT_FITS = ["fill", "cover"];
+
 export const ImageSettings = () => {
-    const { actions: { setProp }, src, width, height, background, borderRadius, minHeight, animationType, animationDuration, animationDelay, objectFit } = useNode((node) => ({
+    const { actions: { setProp }, src, width, height, background, borderRadius, minHeight, animationType, animationDuration, animationDelay, objectFit, objectPositionX, objectPositionY, rotation } = useNode((node) => ({
         src: node.data.props.src,
         width: node.data.props.width,
         height: node.data.props.height,
@@ -32,7 +36,14 @@ export const ImageSettings = () => {
         animationDuration: node.data.props.animationDuration,
         animationDelay: node.data.props.animationDelay,
         objectFit: node.data.props.objectFit,
+        objectPositionX: node.data.props.objectPositionX,
+        objectPositionY: node.data.props.objectPositionY,
+        rotation: node.data.props.rotation,
     }));
+
+    const showFocalPoint = CROP_OBJECT_FITS.includes(objectFit || "");
+    const posX = typeof objectPositionX === "number" ? objectPositionX : 50;
+    const posY = typeof objectPositionY === "number" ? objectPositionY : 50;
 
     return (
         <div className="space-y-4">
@@ -99,6 +110,62 @@ export const ImageSettings = () => {
                 </select>
             </div>
 
+            {showFocalPoint && (
+                <div className="space-y-3 pt-2 border-t">
+                    <Label className="text-sm font-medium">Focal point</Label>
+                    <p className="text-xs text-muted-foreground">Move the visible area when using Fill or Cover.</p>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Horizontal</Label>
+                            <Slider
+                                value={[posX]}
+                                min={0}
+                                max={100}
+                                step={1}
+                                onValueChange={(val) => setProp((props: any) => (props.objectPositionX = val[0]))}
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Vertical</Label>
+                            <Slider
+                                value={[posY]}
+                                min={0}
+                                max={100}
+                                step={1}
+                                onValueChange={(val) => setProp((props: any) => (props.objectPositionY = val[0]))}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="space-y-3 pt-4 border-t">
+                <Label className="text-sm font-medium">Rotate</Label>
+                <p className="text-xs text-muted-foreground">Turn the image left or right.</p>
+                <div className="flex gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 gap-1"
+                        onClick={() => setProp((p: any) => (p.rotation = ((typeof p.rotation === "number" ? p.rotation : 0) - 90 + 360) % 360))}
+                    >
+                        <RotateCcw className="size-4" />
+                        Rotate left
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 gap-1"
+                        onClick={() => setProp((p: any) => (p.rotation = ((typeof p.rotation === "number" ? p.rotation : 0) + 90) % 360))}
+                    >
+                        <RotateCw className="size-4" />
+                        Rotate right
+                    </Button>
+                </div>
+            </div>
+
             <div className="space-y-2 pt-4 border-t">
                 <Label>Background Color</Label>
                 <div className="flex gap-2">
@@ -131,7 +198,7 @@ export const ImageSettings = () => {
     );
 };
 
-export const UserImage = ({ src, width, height, padding, margin, background, borderRadius, minHeight, animationType, animationDuration, animationDelay, align, top, left, grayscale, objectFit }: any): React.JSX.Element => {
+export const UserImage = ({ src, width, height, padding, margin, background, borderRadius, minHeight, animationType, animationDuration, animationDelay, align, top, left, grayscale, objectFit, objectPositionX, objectPositionY, rotation }: any): React.JSX.Element => {
     const { connectors: { connect, drag }, selected, actions: { setProp } } = useNode((state) => ({
         selected: state.events.selected,
     }));
@@ -202,7 +269,9 @@ export const UserImage = ({ src, width, height, padding, margin, background, bor
                         style={{
                             borderRadius: `${borderRadius}px`,
                             filter: grayscale ? "grayscale(100%)" : "none",
+                            transform: typeof rotation === "number" && rotation ? `rotate(${rotation}deg)` : undefined,
                             objectFit: objectFit || "contain",
+                            objectPosition: `${typeof objectPositionX === "number" ? objectPositionX : 50}% ${typeof objectPositionY === "number" ? objectPositionY : 50}%`,
                         }}
                     />
                 ) : (
@@ -234,6 +303,9 @@ UserImage.craft = {
         left: 0,
         grayscale: false,
         objectFit: "contain",
+        objectPositionX: 50,
+        objectPositionY: 50,
+        rotation: 0,
     },
     related: {
         settings: ImageSettings,
