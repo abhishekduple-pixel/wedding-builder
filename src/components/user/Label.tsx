@@ -25,7 +25,7 @@ export const LabelSettings = () => {
                     onChange={(e) => setProp((props: any) => props.text = e.target.value)}
                 />
             </div>
-            <StylesPanel />
+            <StylesPanel hideDimensions />
         </div>
     );
 };

@@ -52,7 +52,7 @@ export const InputSettings = () => {
                 </select>
             </div>
 
-            <StylesPanel />
+            <StylesPanel hideDimensions />
         </div>
     );
 };
@@ -114,7 +114,7 @@ UserInput.craft = {
         type: "text",
         padding: 0,
         margin: 0,
-        width: "100%",
+        width: "50%",
         height: undefined,
         top: 0,
         left: 0,
