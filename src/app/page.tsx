@@ -15,7 +15,7 @@ export default function Home() {
   return (
     <AppProvider>
       <EditorProvider>
-        <Viewport>
+        <Viewport>  
           <Frame>
             <Element is={UserContainer} custom={{ displayName: "Canvas" }} canvas background="#ffffff" padding={0} minHeight="100vh" width="100%" layoutMode="canvas">
               <UserText text="Drag components from the left to start checking." fontSize={16} top={100} left={100} />

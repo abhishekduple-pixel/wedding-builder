@@ -2,7 +2,7 @@
 "use no memo";
 
 import { useNode, useEditor } from "@craftjs/core";
-import React from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
@@ -37,17 +37,27 @@ export const TextareaSettings = () => {
                 />
             </div>
             <div className="space-y-2">
-                <Label>Rows</Label>
+                <Label>Rows (min height)</Label>
                 <Input
                     type="number"
-                    value={rows}
-                    onChange={(e) => setProp((props: any) => props.rows = parseInt(e.target.value))}
+                    min={1}
+                    max={50}
+                    value={typeof rows === "number" && rows >= 1 ? rows : 4}
+                    onChange={(e) => {
+                        const raw = e.target.value;
+                        const num = parseInt(raw, 10);
+                        const next = raw === "" ? 4 : (isNaN(num) ? (typeof rows === "number" ? rows : 4) : Math.max(1, Math.min(50, num)));
+                        setProp((props: any) => (props.rows = next));
+                    }}
                 />
             </div>
-            <StylesPanel />
+            <StylesPanel hideDimensions />
         </div>
     );
 };
+
+const safeRows = (rows: unknown) =>
+    typeof rows === "number" && rows >= 1 ? rows : 4;
 
 export const UserTextarea = ({ placeholder, value, rows, padding, margin, width, height, background, borderRadius, animationType, animationDuration, animationDelay }: any) => {
     const { connectors: { connect, drag }, selected, actions: { setProp }, top, left } = useNode((state) => ({
@@ -62,6 +72,27 @@ export const UserTextarea = ({ placeholder, value, rows, padding, margin, width,
 
     const variants = getAnimationVariants(animationType, animationDuration, animationDelay);
     const { itemStyle } = useCanvasDrag(top, left);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const minRows = safeRows(rows);
+
+    const resizeToContent = useCallback(() => {
+        const el = textareaRef.current;
+        if (!el) return;
+        el.style.height = "auto";
+        const lineHeight = 20;
+        const minHeight = minRows * lineHeight;
+        const contentHeight = Math.max(minHeight, el.scrollHeight);
+        el.style.height = `${contentHeight}px`;
+    }, [minRows]);
+
+    useEffect(() => {
+        resizeToContent();
+    }, [value, minRows, resizeToContent]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setProp((props: any) => (props.value = e.target.value));
+        resizeToContent();
+    };
 
     return (
         <motion.div
@@ -81,10 +112,11 @@ export const UserTextarea = ({ placeholder, value, rows, padding, margin, width,
             variants={variants as any}
         >
             <Textarea
+                ref={textareaRef}
                 placeholder={placeholder}
                 value={value}
-                onChange={(e) => setProp((props: any) => props.value = e.target.value)}
-                rows={rows}
+                onChange={handleChange}
+                rows={minRows}
                 className={selected ? "ring-2 ring-blue-400" : ""}
                 readOnly={enabled && !selected}
             />
@@ -100,7 +132,7 @@ UserTextarea.craft = {
         rows: 4,
         padding: 0,
         margin: 0,
-        width: "100%",
+        width: "60%",
         height: undefined,
         top: 0,
         left: 0,
